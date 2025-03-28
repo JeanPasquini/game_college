@@ -15,7 +15,7 @@ function mapa1.load(gameState)
     config.load()
     debug.load() 
     
-    player = Player.new(100, 100)
+    player = Player.new(1100, 100)
     
     for _, objeto in ipairs(config.objetos) do
         table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.cor))
@@ -67,20 +67,37 @@ function checkCollision(player, objeto)
            player.y + 32 > objeto.y
 end
 
+function Player:handleCollisions(objetos)
+    for _, objeto in ipairs(objetos) do
+        if checkCollision(self, objeto) then
+            local overlapLeft = self.x + 32 - objeto.x
+            local overlapRight = objeto.x + objeto.width - self.x
+            local overlapTop = self.y + 32 - objeto.y
+            local overlapBottom = objeto.y + objeto.height - self.y
+
+            local minOverlap = math.min(overlapLeft, overlapRight, overlapTop, overlapBottom)
+
+            if minOverlap == overlapLeft then
+                self.x = objeto.x - 32
+            elseif minOverlap == overlapRight then
+                self.x = objeto.x + objeto.width 
+            elseif minOverlap == overlapTop then
+                self.y = objeto.y - 32 
+                self.velocidadeY = 0
+            elseif minOverlap == overlapBottom then
+                self.y = objeto.y + objeto.height 
+            end
+              --self.velocidadeX = 0
+        end
+    end
+end
+
+
 function checkCollisionAgua(player, agua)
     return player.x < agua.x + agua.width and
            player.x + 32 > agua.x and
            player.y < agua.y + agua.height and
            player.y + 32 > agua.y
-end
-
-function Player:handleCollisions(objetos)
-    for _, objeto in ipairs(objetos) do
-        if checkCollision(self, objeto) then
-            self.y = objeto.y - 32
-            self.velocidadeY = 0 
-        end
-    end
 end
 
 function Player:handleCollisions2(aguas)
