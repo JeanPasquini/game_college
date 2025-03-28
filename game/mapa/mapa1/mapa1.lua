@@ -1,4 +1,5 @@
 local Objeto = require("mapa.mapa1.objeto") 
+local Agua = require("mapa.mapa1.agua") 
 local mapa1 = {}
 local config = require("mapa.mapa1.config")
 local debug = require("mapa.mapa1.debug")
@@ -6,6 +7,7 @@ local Player = require("player.player")
 
 local player
 local objetosMapa1 = {}
+local aguasMapa1 = {}
 
 function mapa1.load(gameState)
     mapa1.gameState = gameState
@@ -14,10 +16,14 @@ function mapa1.load(gameState)
     debug.load()
 
     player = Player.new(100, 100)
+    
     for _, objeto in ipairs(config.objetos) do
         table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.cor))
     end
-
+    
+    for _, agua in ipairs(config.aguas) do
+        table.insert(aguasMapa1, Agua.new(agua.x, agua.y, agua.cor))
+    end
 end
 
 function mapa1.draw()
@@ -26,8 +32,13 @@ function mapa1.draw()
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
     end
+    
+    for _, agua in ipairs(aguasMapa1) do
+        agua:draw()
+    end
 
-    if player.visible then
+    -- Verificar se o player está visível antes de desenhá-lo
+    if player and player.visible then
         player:draw()
     end
 
@@ -37,8 +48,12 @@ function mapa1.draw()
 end
 
 function mapa1.update(dt)
-    player:update()
-    player:handleCollisions(objetosMapa1)
+    -- Verificar se o player está visível antes de atualizar
+    if player and player.visible then
+        player:update()
+        player:handleCollisions(objetosMapa1)
+        player:handleCollisions2(aguasMapa1)
+    end
 end
 
 function mapa1.keypressed(key)
@@ -54,6 +69,14 @@ function checkCollision(player, objeto)
            player.y + 40 > objeto.y
 end
 
+function checkCollisionAgua(player, agua)
+    -- Corrigir a comparação das coordenadas para a água
+    return player.x < agua.x + agua.width and
+           player.x + 100 > agua.x and
+           player.y < agua.y + agua.height and
+           player.y + 40 > agua.y
+end
+
 function Player:handleCollisions(objetos)
     for _, objeto in ipairs(objetos) do
         if checkCollision(self, objeto) then
@@ -63,5 +86,12 @@ function Player:handleCollisions(objetos)
     end
 end
 
+function Player:handleCollisions2(aguas)
+    for _, agua in ipairs(aguas) do
+        if checkCollisionAgua(self, agua) then
+            player.visible = false
+        end
+    end
+end
 
 return mapa1

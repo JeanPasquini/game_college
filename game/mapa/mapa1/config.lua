@@ -1,10 +1,11 @@
 local Objeto = require("mapa.mapa1.objeto")
+local Agua = require("mapa.mapa1.agua")
 local config = {}
 
 function config.load()
     config.largura = 1920
     config.altura = 1080
-    config.tamanhoQuadrado = 20
+    config.tamanhoQuadrado = 16
     config.matriz = require("mapa.mapa1.matriz")
 
     config.cores = {
@@ -15,6 +16,7 @@ function config.load()
 
     config.maxQuadradosPorLinha = math.floor(config.largura / config.tamanhoQuadrado)
     config.objetos = {}
+    config.aguas = {}  -- Adiciona a inicialização correta
     for y, linha in ipairs(config.matriz) do
         for x, valor in ipairs(linha) do
             if valor == 1 then
@@ -23,6 +25,12 @@ function config.load()
                 local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
                 local objeto = Objeto.new(px, py, cor)
                 table.insert(config.objetos, objeto)
+            elseif valor == 2 then
+                local cor = config.cores[valor] or {1, 1, 1} 
+                local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
+                local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
+                local agua = Agua.new(px, py, cor)
+                table.insert(config.aguas, agua)
             end
         end
     end
