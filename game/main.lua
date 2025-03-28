@@ -29,3 +29,9 @@ function love.mousepressed(x, y, button)
         menu.mousepressed(x, y, button)
     end
 end
+
+function love.keypressed(key)
+    if gameState.estado == "mapa1" then
+        mapa1.keypressed(key)
+    end
+end

@@ -6,8 +6,8 @@ function Objeto.new(x, y, cor)
     self.x = x
     self.y = y
     self.cor = cor
-    self.width = 20 
-    self.height = 20
+    self.width = 16
+    self.height = 16
     return self
 end
 
