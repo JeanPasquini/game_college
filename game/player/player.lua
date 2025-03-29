@@ -9,6 +9,8 @@ function Player.new(x, y)
     self.visible = true
     self.velocidadeY = 0
     self.gravidade = 0.5
+    self.pulando = false
+    self.alturaMaximaDoPulo = -3.8
     return self
 end
 
@@ -19,8 +21,19 @@ function Player:update()
         self.x = self.x + self.speed
     end
 
+    if love.keyboard.isDown('space') and self.velocidadeY == 0 then
+        self.velocidadeY = self.alturaMaximaDoPulo
+        self.pulando = true
+    end
+
     self.velocidadeY = self.velocidadeY + self.gravidade
     self.y = self.y + self.velocidadeY
+
+    if self.y >= love.graphics.getHeight() - 32 then
+        self.y = love.graphics.getHeight() - 32
+        self.velocidadeY = 0
+        self.pulando = false 
+    end
 end
 
 function Player:draw()

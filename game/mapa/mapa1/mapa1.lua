@@ -87,7 +87,6 @@ function Player:handleCollisions(objetos)
             elseif minOverlap == overlapBottom then
                 self.y = objeto.y + objeto.height 
             end
-              --self.velocidadeX = 0
         end
     end
 end
