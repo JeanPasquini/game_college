@@ -19,6 +19,9 @@ function Player.new(x, y)
     
     self.forcaTiro = 0
     self.maxForca = 50 -- Força máxima do tiro
+    
+    self.shootSound = love.audio.newSource("sounds/explosion.wav", "static")
+    self.jumpSound = love.audio.newSource("sounds/jump.wav", "static")
 
     return self
 end
@@ -45,6 +48,7 @@ function Player:update(dt)
     if love.keyboard.isDown('space') and self.velocidadeY == 0 then
         self.velocidadeY = self.alturaMaximaDoPulo
         self.pulando = true
+        love.audio.play(self.jumpSound)
     end
 
     -- Movimentação da mira
@@ -90,6 +94,8 @@ function Player:shoot()
     local startX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
     local startY = self.y + 16 + self.raioMira * math.sin(self.anguloTiro)
     self:newProjectile(startX, startY, self.anguloTiro, self.forcaTiro)
+    
+    love.audio.play(self.shootSound)
 end
 
 function Player:draw()
@@ -126,6 +132,8 @@ function Player:draw()
 
     -- Reseta a espessura da linha para o padrão após desenhar
     love.graphics.setLineWidth(4)  -- Resetando para o valor padrão
+    
+    love.graphics.setColor(1, 1, 1)
 end
 
 

@@ -15,10 +15,12 @@ function mapa1.load(gameState)
     config.load()
     debug.load() 
     
+    background = love.graphics.newImage("resources/backgrounds/background5.png")
+    
     player = Player.new(1100, 100)
     
     for _, objeto in ipairs(config.objetos) do
-        table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.cor))
+        table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.valorImagem))
     end
     
     for _, agua in ipairs(config.aguas) do
@@ -29,7 +31,22 @@ end
 
 function mapa1.draw()
     --config.draw()
+    
+    local windowWidth, windowHeight = love.graphics.getDimensions()
+    
+    -- Obtém as dimensões da imagem do background
+    local bgWidth, bgHeight = background:getDimensions()
+    
+    -- Calcula a escala necessária para cobrir a tela completamente
+    local scaleX = windowWidth / bgWidth
+    local scaleY = windowHeight / bgHeight
+    
+    -- Usa a maior escala para garantir que cubra toda a tela
+    local scale = math.max(scaleX, scaleY)
 
+    -- Desenha o background ajustado
+    love.graphics.draw(background, 0, 0, 0, scale, scale)
+    
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
     end
