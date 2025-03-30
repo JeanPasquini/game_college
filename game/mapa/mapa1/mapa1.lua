@@ -28,7 +28,7 @@ end
 
 
 function mapa1.draw()
-    config.draw()
+    --config.draw()
 
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
@@ -42,15 +42,18 @@ function mapa1.draw()
         player:draw()
     end
 
-    debug.draw(mapa1.debugAtivo)
+    -- Passando o jogador para exibir a velocidadeY no debug
+    debug.draw(mapa1.debugAtivo, player)
 end
+
 
 
 function mapa1.update(dt)
     if player and player.visible then
-        player:update()
+        player:update(dt)  -- Passar 'dt' para o método update
         player:handleCollisions(objetosMapa1)
         player:handleCollisions2(aguasMapa1)
+        player:handleProjectileCollisions(objetosMapa1)  -- Verifica a colisão dos projéteis com objetos
     end
 end
 
@@ -102,9 +105,42 @@ end
 function Player:handleCollisions2(aguas)
     for _, agua in ipairs(aguas) do
         if checkCollisionAgua(self, agua) then
-            player = nil
+            player.visible = false
         end
     end
 end
+
+function checkCollisionProjectile(proj, objeto)
+    return proj.x < objeto.x + objeto.width and
+           proj.x + 5 > objeto.x and  -- O raio do projétil é 5, então 10 é o diâmetro.
+           proj.y < objeto.y + objeto.height and
+           proj.y + 5 > objeto.y  -- O raio do projétil é 5, então 10 é o diâmetro.
+end
+
+function Player:handleProjectileCollisions(objetos)
+    for i, proj in ipairs(self.projectiles) do
+        for _, objeto in ipairs(objetos) do
+            if checkCollisionProjectile(proj, objeto) then
+                -- Remover o projétil da lista
+                table.remove(self.projectiles, i)
+
+                -- Destruir objetos dentro de um raio de 100px da colisão
+                for j = #objetos, 1, -1 do  -- Iterar ao contrário para não pular elementos ao remover
+                    local objeto2 = objetos[j]
+                    local dist = math.sqrt((objeto2.x - proj.x)^2 + (objeto2.y - proj.y)^2)
+                    if dist <= 100 then  -- Verifica se a distância é menor ou igual a 100px
+                        table.remove(objetos, j)  -- Remove o objeto dentro do raio
+                        objeto2 = nil 
+                    end
+                end
+
+                break  -- Já encontrou uma colisão, então não precisa continuar verificando
+            end
+        end
+    end
+end
+
+
+
 
 return mapa1
