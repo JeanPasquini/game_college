@@ -16,6 +16,7 @@ function Agua:draw()
     local py = self.y
     love.graphics.setColor(self.cor[1], self.cor[2], self.cor[3])
     love.graphics.rectangle("fill", px, py, self.width, self.height)
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 return Agua

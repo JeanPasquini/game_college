@@ -15,10 +15,12 @@ function mapa1.load(gameState)
     config.load()
     debug.load() 
     
+    background = love.graphics.newImage("resources/backgrounds/background5.png")
+    
     player = Player.new(1100, 100)
     
     for _, objeto in ipairs(config.objetos) do
-        table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.cor))
+        table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.valorImagem))
     end
     
     for _, agua in ipairs(config.aguas) do
@@ -29,7 +31,22 @@ end
 
 function mapa1.draw()
     --config.draw()
+    
+    local windowWidth, windowHeight = love.graphics.getDimensions()
+    
+    -- Obtém as dimensões da imagem do background
+    local bgWidth, bgHeight = background:getDimensions()
+    
+    -- Calcula a escala necessária para cobrir a tela completamente
+    local scaleX = windowWidth / bgWidth
+    local scaleY = windowHeight / bgHeight
+    
+    -- Usa a maior escala para garantir que cubra toda a tela
+    local scale = math.max(scaleX, scaleY)
 
+    -- Desenha o background ajustado
+    love.graphics.draw(background, 0, 0, 0, scale, scale)
+    
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
     end
@@ -105,36 +122,34 @@ end
 function Player:handleCollisions2(aguas)
     for _, agua in ipairs(aguas) do
         if checkCollisionAgua(self, agua) then
-            player.visible = false
+            self.visible = false
         end
     end
 end
 
 function checkCollisionProjectile(proj, objeto)
     return proj.x < objeto.x + objeto.width and
-           proj.x + 5 > objeto.x and  -- O raio do projétil é 5, então 10 é o diâmetro.
+           proj.x + 5 > objeto.x and
            proj.y < objeto.y + objeto.height and
-           proj.y + 5 > objeto.y  -- O raio do projétil é 5, então 10 é o diâmetro.
+           proj.y + 5 > objeto.y
 end
 
 function Player:handleProjectileCollisions(objetos)
     for i, proj in ipairs(self.projectiles) do
         for _, objeto in ipairs(objetos) do
             if checkCollisionProjectile(proj, objeto) then
-                -- Remover o projétil da lista
                 table.remove(self.projectiles, i)
 
-                -- Destruir objetos dentro de um raio de 100px da colisão
-                for j = #objetos, 1, -1 do  -- Iterar ao contrário para não pular elementos ao remover
+                for j = #objetos, 1, -1 do 
                     local objeto2 = objetos[j]
                     local dist = math.sqrt((objeto2.x - proj.x)^2 + (objeto2.y - proj.y)^2)
-                    if dist <= 100 then  -- Verifica se a distância é menor ou igual a 100px
-                        table.remove(objetos, j)  -- Remove o objeto dentro do raio
+                    if dist <= 100 then
+                        table.remove(objetos, j)
                         objeto2 = nil 
                     end
                 end
 
-                break  -- Já encontrou uma colisão, então não precisa continuar verificando
+                break
             end
         end
     end

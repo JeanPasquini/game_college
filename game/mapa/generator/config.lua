@@ -6,8 +6,9 @@ function config.load()
     config.largura = 1920
     config.altura = 1080
     config.tamanhoQuadrado = 16
-    config.matriz = require("mapa.mapa1.matriz")
-
+    config.matriz = require("mapa.mapa1.matriz")        -- Matriz de valores (0, 1, 2...)
+    config.imagemMatriz = require("mapa.mapa1.matrizTiles")  -- Matriz de imagens associadas ao objeto
+    
     config.cores = {
         [0] = {0.25, 0.25, 0.25},  -- Cor para valor 0
         [1] = {0, 1, 0},           -- Cor para valor 1 (verde)
@@ -16,35 +17,34 @@ function config.load()
 
     config.maxQuadradosPorLinha = math.floor(config.largura / config.tamanhoQuadrado)
     
-    --lista de blocos/objetos
+    -- Lista de blocos/objetos
     config.objetos = {}
     config.aguas = {}
     
     for y, linha in ipairs(config.matriz) do
         for x, valor in ipairs(linha) do
-          
-          --objeto solido
+            -- Pegue o valor da imagem associada à posição (x, y)
+            local imagemValor = config.imagemMatriz[y] and config.imagemMatriz[y][x] or nil
+
+            -- Verifique o tipo de valor na matriz
             if valor == 1 then
-                local cor = config.cores[valor] or {1, 1, 1} 
-                local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
-                local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
-                local objeto = Objeto.new(px, py, cor)
-                table.insert(config.objetos, objeto)
-            
-            
-          --agua
+                  local cor = config.cores[1] or {1, 1, 1}
+                  local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
+                  local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
+                  local objeto = Objeto.new(px, py, imagemValor)  -- Passando a imagem da grama
+                  table.insert(config.objetos, objeto)
             elseif valor == 2 then
-                local cor = config.cores[valor] or {1, 1, 1} 
+                -- Água
+                local cor = config.cores[valor] or {1, 1, 1}
                 local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
                 local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
-                local agua = Agua.new(px, py, cor)
+                local agua = Agua.new(px, py, cor, imagemValor)  -- Passe imagemValor para a água
                 table.insert(config.aguas, agua)
-                
-            
             end
         end
     end
 end
+
 
 function config.draw()
     local numQuadrados = 0
