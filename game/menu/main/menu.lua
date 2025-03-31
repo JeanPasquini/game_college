@@ -3,6 +3,7 @@ local menu = {}
 function menu.load(gameState)
     menu.gameState = gameState
     menu.fonte = love.graphics.newFont(40)  -- Fonte maior para o texto dos botões
+    menu.tituloFonte = love.graphics.newFont(60) -- Fonte maior para o título
 
     -- Dimensões da tela
     local screenWidth = love.graphics.getWidth()
@@ -14,7 +15,7 @@ function menu.load(gameState)
     local buttonSpacing = 20  -- Espaçamento entre os botões
 
     -- Posição inicial dos botões (centralizada verticalmente)
-    local startY = (screenHeight - (4 * buttonHeight + 3 * buttonSpacing)) / 2
+    local startY = (screenHeight - (4 * buttonHeight + 3 * buttonSpacing)) / 2 + 50
 
     -- Centraliza os botões horizontalmente
     local buttonX = (screenWidth - buttonWidth) / 2
@@ -33,8 +34,15 @@ function menu.update(dt)
 end
 
 function menu.draw()
-    love.graphics.setFont(menu.fonte)
+    love.graphics.setFont(menu.tituloFonte)
     love.graphics.setBackgroundColor(0, 0, 0.2)  -- Fundo azul escuro
+
+    -- Desenha o título do jogo
+    love.graphics.setColor(1, 1, 1) -- Branco
+    local screenWidth = love.graphics.getWidth()
+    love.graphics.printf("Tiro com Tank", 0, 100, screenWidth, "center")
+
+    love.graphics.setFont(menu.fonte)
 
     for _, botao in ipairs(menu.botoes) do
         -- Cor do botão (DodgerBlue normal ou mais escuro no hover)
