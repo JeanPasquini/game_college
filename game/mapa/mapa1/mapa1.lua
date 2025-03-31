@@ -122,36 +122,34 @@ end
 function Player:handleCollisions2(aguas)
     for _, agua in ipairs(aguas) do
         if checkCollisionAgua(self, agua) then
-            player.visible = false
+            self.visible = false
         end
     end
 end
 
 function checkCollisionProjectile(proj, objeto)
     return proj.x < objeto.x + objeto.width and
-           proj.x + 5 > objeto.x and  -- O raio do projétil é 5, então 10 é o diâmetro.
+           proj.x + 5 > objeto.x and
            proj.y < objeto.y + objeto.height and
-           proj.y + 5 > objeto.y  -- O raio do projétil é 5, então 10 é o diâmetro.
+           proj.y + 5 > objeto.y
 end
 
 function Player:handleProjectileCollisions(objetos)
     for i, proj in ipairs(self.projectiles) do
         for _, objeto in ipairs(objetos) do
             if checkCollisionProjectile(proj, objeto) then
-                -- Remover o projétil da lista
                 table.remove(self.projectiles, i)
 
-                -- Destruir objetos dentro de um raio de 100px da colisão
-                for j = #objetos, 1, -1 do  -- Iterar ao contrário para não pular elementos ao remover
+                for j = #objetos, 1, -1 do 
                     local objeto2 = objetos[j]
                     local dist = math.sqrt((objeto2.x - proj.x)^2 + (objeto2.y - proj.y)^2)
-                    if dist <= 100 then  -- Verifica se a distância é menor ou igual a 100px
-                        table.remove(objetos, j)  -- Remove o objeto dentro do raio
+                    if dist <= 100 then
+                        table.remove(objetos, j)
                         objeto2 = nil 
                     end
                 end
 
-                break  -- Já encontrou uma colisão, então não precisa continuar verificando
+                break
             end
         end
     end

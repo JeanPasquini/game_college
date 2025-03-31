@@ -9,9 +9,9 @@ function Objeto.new(x, y, valorImagem)
 
     -- Lógica para escolher a imagem com base no valor passado
     if valorImagem == 1 then
-        self.imagem = love.graphics.newImage("resources/grama.png")  -- Caminho para a imagem de grama
+        self.imagem = love.graphics.newImage("resources/blocs/grama.png")  -- Caminho para a imagem de grama
     elseif valorImagem == 2 then
-        self.imagem = love.graphics.newImage("resources/terra.png")  -- Caminho para a imagem de terra
+        self.imagem = love.graphics.newImage("resources/blocs/terra.png")  -- Caminho para a imagem de terra
     else
         self.imagem = nil  -- Caso não seja 1 ou 2, a imagem é definida como nil
         print("Valor inválido para imagem:", valorImagem)
