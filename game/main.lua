@@ -1,3 +1,5 @@
+-- Ctrl + B para executar
+
 love.window.setMode(1920, 1080, { fullscreen = true, resizable = false })
 
 local menu = require("menu.main.menu")

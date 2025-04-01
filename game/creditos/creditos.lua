@@ -39,11 +39,11 @@ function creditos.draw()
     -- Título
     love.graphics.setFont(creditos.fonte)
     love.graphics.setColor(1, 1, 1)  -- Texto branco
-    love.graphics.printf("Créditos", 0, 100, love.graphics.getWidth(), "center")
+    love.graphics.printf("Créditos", 0, 50, love.graphics.getWidth(), "center")
 
     -- Texto dos créditos
     love.graphics.setFont(creditos.fonte)
-    love.graphics.printf("Desenvolvido por: Filipi Carvalho Biazoto e Jean Pasquini \n\n Agradecimentos: Dr Prof José Tarcísio ", 0, 300, love.graphics.getWidth(), "center")
+    love.graphics.printf("Desenvolvido por:\n\n Menus e Som:\nFilipi Carvalho Biazoto\n\nGameplay e Estrutura:\nJean Pasquini\n\nDesign e Art\n Amanda\n\nAgradecimentos: Dr Prof José Tarcísio", 0, 100, love.graphics.getWidth(), "center")
 
     -- Botão "Voltar" (estilo igual ao do menu)
     if creditos.botaoVoltar.hover then
