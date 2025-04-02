@@ -18,7 +18,6 @@ function Player.new(x, y, name)
     self.raioMira = 50 -- Raio da área de tiro
     self.lastShotTime = 0 -- Tempo do último disparo
     self.shootCooldown = 1 -- Tempo de espera entre disparos (em segundos)
-
     self.forcaTiro = 0
     self.maxForca = 50 -- Força máxima do tiro
     
@@ -88,8 +87,7 @@ function Player:applyPhysics(dt)
     -- Aplica a gravidade ao jogador
     self.velocidadeY = self.velocidadeY + self.gravidade
     self.y = self.y + self.velocidadeY
-
-    -- Verifica colisão com o chão
+  
     if self.y >= love.graphics.getHeight() - 32 then
         self.y = love.graphics.getHeight() - 32
         self.velocidadeY = 0
@@ -109,7 +107,6 @@ function Player:updateProjectiles(dt)
         proj.y = proj.y + proj.speed * math.sin(proj.angle)
     end
 end
-
 
 function Player:shoot()
     local startX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
@@ -137,7 +134,6 @@ function Player:draw()
     love.graphics.setColor(1, 0, 0)
     love.graphics.rectangle('fill', self.x, self.y, 32, 32)
     love.graphics.setColor(1, 1, 1)
-
     -- Aumenta a espessura da linha de mira
     love.graphics.setLineWidth(4)  
 
@@ -147,7 +143,6 @@ function Player:draw()
     love.graphics.setColor(255, 255, 255)
     love.graphics.line(self.x + 16, self.y + 16, miraX, miraY)
     love.graphics.circle('fill', miraX, miraY, 5)
-
     -- Desenha os projéteis
     for _, proj in ipairs(self.projectiles) do
         love.graphics.setColor(1, 1, 0)
@@ -164,11 +159,8 @@ function Player:draw()
 
     love.graphics.setColor(0, 1, 0)
     love.graphics.line(barraForcaX, barraForcaY, barraForcaFimX, barraForcaFimY)
-
     -- Reseta a espessura da linha para o padrão
     love.graphics.setLineWidth(4)  
 end
-
-
 
 return Player

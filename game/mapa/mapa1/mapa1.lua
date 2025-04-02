@@ -11,7 +11,6 @@ local player2
 local turno = 1 
 local objetosMapa1 = {}
 local aguasMapa1 = {}
-
 local tempoIniciado = false -- Flag para verificar se o tempo começou
 local tempoTurno = 20 -- Tempo do turno em segundos
 local tempoRestante = tempoTurno
@@ -21,7 +20,7 @@ function mapa1.load(gameState)
     mapa1.debugAtivo = false
     config.load()
     debug.load() 
-    
+ 
     background = love.graphics.newImage("resources/backgrounds/background5.png")
     
     player1 = Player.new(1100, 100, "1")
@@ -36,6 +35,7 @@ function mapa1.load(gameState)
     end
 end
 
+
 function mapa1.draw()
     local windowWidth, windowHeight = love.graphics.getDimensions()
     local bgWidth, bgHeight = background:getDimensions()
@@ -44,7 +44,7 @@ function mapa1.draw()
     local scale = math.max(scaleX, scaleY)
     
     love.graphics.draw(background, 0, 0, 0, scale, scale)
-    
+
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
     end
@@ -52,7 +52,6 @@ function mapa1.draw()
     for _, agua in ipairs(aguasMapa1) do
         agua:draw()
     end
-
     if player1 and player1.visible then
         player1:draw()
     end
@@ -92,6 +91,8 @@ function love.keypressed(key)
         tempoRestante = tempoTurno -- Reinicia o tempo do turno
     end
 end
+
+
 
 function mapa1.update(dt)
     -- Só atualiza o timer se o tempo já foi iniciado

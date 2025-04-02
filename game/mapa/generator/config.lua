@@ -8,7 +8,6 @@ function config.load()
     config.tamanhoQuadrado = 16
     config.matriz = require("mapa.mapa1.matriz")        -- Matriz de valores (0, 1, 2...)
     config.imagemMatriz = require("mapa.mapa1.matrizTiles")  -- Matriz de imagens associadas ao objeto
-    
     config.cores = {
         [0] = {0.25, 0.25, 0.25},  -- Cor para valor 0
         [1] = {0, 1, 0},           -- Cor para valor 1 (verde)
@@ -16,8 +15,6 @@ function config.load()
     }
 
     config.maxQuadradosPorLinha = math.floor(config.largura / config.tamanhoQuadrado)
-    
-    -- Lista de blocos/objetos
     config.objetos = {}
     config.aguas = {}
     
@@ -44,7 +41,6 @@ function config.load()
         end
     end
 end
-
 
 function config.draw()
     local numQuadrados = 0

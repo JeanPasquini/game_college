@@ -1,6 +1,5 @@
 local Objeto = {}
 Objeto.__index = Objeto
-
 function Objeto.new(x, y, valorImagem)
     local self = setmetatable({}, Objeto)
     self.x = x
@@ -26,7 +25,6 @@ function Objeto.new(x, y, valorImagem)
     self.visible = true  -- Define a propriedade visible
     return self
 end
-
 
 function Objeto:draw()
     if self.visible then  -- Verifica se o objeto está visível antes de desenhá-lo
