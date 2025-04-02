@@ -24,6 +24,7 @@ function love.draw()
     end
 end
 
+
 function love.mousepressed(x, y, button)
     if gameState.estado == "menu" then
         menu.mousepressed(x, y, button)
