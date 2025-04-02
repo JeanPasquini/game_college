@@ -3,16 +3,16 @@
 love.window.setMode(1920, 1080, { fullscreen = true, resizable = false })
 
 local menu = require("menu.main.menu")
-local gameState = { estado = "menu" }  -- Estado inicial: menu
+local creditos = require("menu.main.creditos")
+local opcoes = require("menu.main.opcoes")  -- Novo módulo para a tela de opções
 
+local gameState = { estado = "menu" }  -- Estado inicial: menu
 local mapa1 = require("mapa.mapa1.mapa1")
-local creditos = require("creditos.creditos")
-local opcoes = require("opcoes.opcoes")  -- Novo módulo para a tela de opções
 
 function love.load()
     menu.load(gameState)
     mapa1.load(gameState)
-    creditos.load(gameState)
+creditos.load(gameState)
     opcoes.load(gameState)  -- Carrega a tela de opções
 end
 
