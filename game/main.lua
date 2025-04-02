@@ -38,6 +38,7 @@ function love.draw()
     end
 end
 
+
 function love.mousepressed(x, y, button)
     if gameState.estado == "menu" then
         menu.mousepressed(x, y, button)
@@ -53,5 +54,11 @@ function love.mousemoved(x, y, dx, dy)
         menu.mousemoved(x, y)
     elseif gameState.estado == "opcoes" then
         opcoes.mousemoved(x, y)  -- Interação de hover na tela de opções
+    end
+end
+
+function love.keypressed(key)
+    if gameState.estado == "mapa1" then
+        mapa1.keypressed(key)
     end
 end
