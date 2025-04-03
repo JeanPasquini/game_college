@@ -7,6 +7,7 @@ function Player.new(x, y, name)
     self.x = x or 0
     self.y = y or 0
     self.name = name or ""
+    self.life = 5
     self.speed = 5
     self.visible = true
     self.velocidadeY = 0

@@ -12,7 +12,7 @@ local mapa1 = require("mapa.mapa1.mapa1")
 function love.load()
     menu.load(gameState)
     mapa1.load(gameState)
-creditos.load(gameState)
+    creditos.load(gameState)
     opcoes.load(gameState)  -- Carrega a tela de opções
 end
 
@@ -42,10 +42,12 @@ end
 function love.mousepressed(x, y, button)
     if gameState.estado == "menu" then
         menu.mousepressed(x, y, button)
+    elseif gameState.estado == "mapa1" then
+        mapa1.mousepressed(x, y, button)  -- Adiciona o evento do mapa1
     elseif gameState.estado == "creditos" then
         creditos.mousepressed(x, y, button)
     elseif gameState.estado == "opcoes" then
-        opcoes.mousepressed(x, y, button)  -- Interação na tela de opções
+        opcoes.mousepressed(x, y, button)
     end
 end
 
