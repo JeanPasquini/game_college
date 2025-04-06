@@ -29,8 +29,10 @@ function debug.draw(debugAtivo, player)
     if player and debugAtivo then
       love.graphics.setFont(debug.fontePequena) -- Definir a fonte pequena
       love.graphics.setColor(1, 1, 1) -- Cor branca
-      love.graphics.print("Velocidade Y: " .. string.format("%.2f", player.velocidadeY), player.x, player.y - 20)
-      love.graphics.print("Força: " .. string.format("%.2f", player.forcaTiro), player.x, player.y - 40)
+      love.graphics.print("Velocidade Y: " .. string.format("%.2f", player.velocidadeY), player.x + 20, player.y - 40)
+      love.graphics.print("Força: " .. string.format("%.2f", player.forcaTiro), player.x + 20, player.y - 60)
+      love.graphics.print("Pulando: " .. tostring(player.pulando), player.x + 20, player.y - 80)
+      love.graphics.print("Disparou: " .. tostring(player.disparou), player.x + 20, player.y - 100)
       love.graphics.setFont(love.graphics.newFont())
     end
 end

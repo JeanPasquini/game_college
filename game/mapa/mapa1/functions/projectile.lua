@@ -28,7 +28,26 @@ function functionProjetile.handleProjectileCollisions(players, objetos)
                     for _, target in ipairs(players) do
                         local distPlayer = math.sqrt((target.x - proj.x)^2 + (target.y - proj.y)^2)
                         if distPlayer <= 100 then
-                            target.life = math.max(target.life - 1, 0)
+                            target.life = math.max(target.life - 2, 0)
+
+                            -- Knockback
+                            local knockbackForce = 300
+                            if proj.x < target.x then
+                                -- Projétil veio da esquerda, empurra para a direita
+                                target.knockbackX = knockbackForce
+                            else
+                                -- Projétil veio da direita, empurra para a esquerda
+                                target.knockbackX = -knockbackForce
+                            end
+
+                            if proj.y < target.y then
+                                target.knockbackY = knockbackForce
+                            else
+                                target.knockbackY = -knockbackForce
+                            end
+
+                            -- Você pode usar essas variáveis na lógica de movimento
+                            -- Exemplo: target.x = target.x + target.knockbackX * deltaTime
                         end
                     end
 

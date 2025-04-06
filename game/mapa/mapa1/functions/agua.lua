@@ -10,7 +10,7 @@ end
 function functionAgua.handleCollisionsAgua(player, aguas)
     for _, agua in ipairs(aguas) do
         if functionAgua.checkCollisionAgua(player, agua) then
-            player.visible = false
+            player.life = 0
         end
     end
 end

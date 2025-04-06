@@ -8,19 +8,23 @@ function Player.new(x, y, name)
     self.y = y or 0
     self.name = name or ""
     self.life = 5
-    self.speed = 5
+    self.speed = 0.5
     self.visible = true
     self.velocidadeY = 0
-    self.gravidade = 0.2
+    self.gravidade = 0.1
     self.pulando = false
-    self.alturaMaximaDoPulo = -3.8
+    self.disparando = false
+    self.alturaMaximaDoPulo = -2.8
     self.projectiles = {} -- Lista para armazenar os projéteis
     self.anguloTiro = 0 -- Ângulo inicial da seta
-    self.raioMira = 50 -- Raio da área de tiro
+    self.raioMira = 30 -- Raio da área de tiro
     self.lastShotTime = 0 -- Tempo do último disparo
     self.shootCooldown = 1 -- Tempo de espera entre disparos (em segundos)
     self.forcaTiro = 0
-    self.maxForca = 50 -- Força máxima do tiro
+    self.maxForca = 30 -- Força máxima do tiro
+    self.knockbackX = 0
+    self.knockbackY = 0
+
     
     self.shootSound = love.audio.newSource("sounds/explosion.wav", "static")
     self.jumpSound = love.audio.newSource("sounds/jump.wav", "static")
@@ -51,56 +55,78 @@ end
 
 -- Lida com a entrada do teclado
 function Player:handleInput(dt)
-        -- Movimentação horizontal
+    if not self.disparando then
         if love.keyboard.isDown('a') or love.keyboard.isDown('left')then
             self.x = self.x - self.speed
         elseif love.keyboard.isDown('d') or love.keyboard.isDown('right')then
             self.x = self.x + self.speed
         end
-    
+
         -- Pulo
         if love.keyboard.isDown('space') and self.velocidadeY == 0 then
             self.velocidadeY = self.alturaMaximaDoPulo
-            self.pulando = true
             love.audio.play(self.jumpSound)
         end
-    
-        -- Movimentação da mira
-        if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
-            self.anguloTiro = self.anguloTiro - 0.05
-        elseif love.keyboard.isDown('s') or love.keyboard.isDown('down')then
-            self.anguloTiro = self.anguloTiro + 0.05
-        end
-    
-        -- Acumula a força enquanto a tecla 'f' é pressionada
-        if love.keyboard.isDown('f') or love.keyboard.isDown('p')then
-            if self.forcaTiro < self.maxForca then
-                self.forcaTiro = self.forcaTiro + 0.5 -- Aumenta a força aos poucos
-            end
-        elseif self.forcaTiro > 0 then
-            self:shoot() -- Dispara quando a tecla 'f' é solta
-            self.forcaTiro = 0 -- Reseta a força
-        end    
+    end
 end
 
+function Player:lifePlayer(dt)
+    if self.life == 0 then
+        self.visible = false
+    end
+end
 -- Aplica a física do personagem (gravidade, movimentação vertical)
 function Player:applyPhysics(dt)
     -- Aplica a gravidade ao jogador
+    if self.velocidadeY == 0 then
+        self.pulando = false
+    else
+        self.pulando = true
+    end
+
     self.velocidadeY = self.velocidadeY + self.gravidade
     self.y = self.y + self.velocidadeY
   
     if self.y >= love.graphics.getHeight() - 32 then
         self.y = love.graphics.getHeight() - 32
         self.velocidadeY = 0
-        self.pulando = false 
+        
     end
+
+    -- Exemplo dentro do update do jogador
+    self.x = self.x + self.knockbackX * dt
+    self.y = self.y + self.knockbackY * dt
+
+    -- Reduz gradualmente o knockback
+    self.knockbackX = self.knockbackX * 0.9
+    self.knockbackY = self.knockbackY * 0.9
+
 end
 
 -- Atualiza os projéteis
 function Player:updateProjectiles(dt)
+    if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
+        self.anguloTiro = self.anguloTiro - 0.05
+    elseif love.keyboard.isDown('s') or love.keyboard.isDown('down')then
+        self.anguloTiro = self.anguloTiro + 0.05
+    end
+
+    if not self.pulando and not self.disparou then
+        if love.keyboard.isDown('f') or love.keyboard.isDown('p')then
+            self.disparando = true
+            if self.forcaTiro < self.maxForca then
+                self.forcaTiro = self.forcaTiro + 0.5 -- Aumenta a força aos poucos
+            end
+        elseif self.forcaTiro > 0 then
+            self.disparando = false
+            self:shoot() -- Dispara quando a tecla 'f' é solta
+            self.forcaTiro = 0 -- Reseta a força
+        end    
+    end
+
     for i, proj in ipairs(self.projectiles) do
         -- Aplica a gravidade no projétil
-        proj.velocidadeY = proj.velocidadeY + self.gravidade
+        proj.velocidadeY = proj.velocidadeY + (self.gravidade * 2)
         proj.y = proj.y + proj.velocidadeY
         
         -- Movimenta o projétil na direção do ângulo
@@ -113,10 +139,8 @@ function Player:shoot()
     local startX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
     local startY = self.y + 16 + self.raioMira * math.sin(self.anguloTiro)
     self:newProjectile(startX, startY, self.anguloTiro, self.forcaTiro)
-    
     love.audio.play(self.shootSound)
-    
-    self.disparou = true -- Marca que o jogador disparou
+    self.disparou = true
 end
 
 
