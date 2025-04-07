@@ -27,17 +27,6 @@ function opcoes.load(gameState)
         hover = false
     }
 
-    -- Carrega o som de fundo
-    local success, som = pcall(love.audio.newSource, "som-de-fundo.mp3", "stream")
-    if success then
-        opcoes.som = som
-        opcoes.som:setLooping(true)  -- Faz o som de fundo repetir continuamente
-        opcoes.som:play()  -- Inicia o som de fundo
-    else
-        print("Erro: Arquivo de som-de-fundo não encontrado! Verifique o nome e a extensão do arquivo.")
-        opcoes.som = nil
-    end
-
     -- Define o volume inicial (0 a 1)
     opcoes.volume = 0.2
     love.audio.setVolume(opcoes.volume)

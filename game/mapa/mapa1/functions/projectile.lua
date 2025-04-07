@@ -14,6 +14,7 @@ function functionProjetile.handleProjectileCollisions(players, objetos)
             for _, objeto in ipairs(objetos) do
                 if functionProjetile.checkCollisionProjectile(proj, objeto) then
                     table.remove(player.projectiles, i)
+                    efeitoSonoro:play("sounds/soundeffect/explosion2.wav")
 
                     for j = #objetos, 1, -1 do
                         local objeto2 = objetos[j]
@@ -28,6 +29,7 @@ function functionProjetile.handleProjectileCollisions(players, objetos)
                     for _, target in ipairs(players) do
                         local distPlayer = math.sqrt((target.x - proj.x)^2 + (target.y - proj.y)^2)
                         if distPlayer <= 100 then
+                            --efeitoSonoro:play("sounds/soundeffect/hit.wav")
                             target.life = math.max(target.life - 2, 0)
 
                             -- Knockback

@@ -26,8 +26,8 @@ function Player.new(x, y, name)
     self.knockbackY = 0
 
     
-    self.shootSound = love.audio.newSource("sounds/explosion.wav", "static")
-    self.jumpSound = love.audio.newSource("sounds/jump.wav", "static")
+    self.shootSound = love.audio.newSource("sounds/soundeffect/explosion.wav", "static")
+    self.jumpSound = love.audio.newSource("sounds/soundeffect/jump.wav", "static")
     
     self.disparou = false -- Variável para controlar se já disparou
     font = love.graphics.newFont("font/PressStart2P-Regular.ttf", 10)
@@ -65,7 +65,7 @@ function Player:handleInput(dt)
         -- Pulo
         if love.keyboard.isDown('space') and self.velocidadeY == 0 then
             self.velocidadeY = self.alturaMaximaDoPulo
-            love.audio.play(self.jumpSound)
+            efeitoSonoro:play("sounds/soundeffect/jump.wav")
         end
     end
 end
@@ -139,7 +139,7 @@ function Player:shoot()
     local startX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
     local startY = self.y + 16 + self.raioMira * math.sin(self.anguloTiro)
     self:newProjectile(startX, startY, self.anguloTiro, self.forcaTiro)
-    love.audio.play(self.shootSound)
+    efeitoSonoro:play("sounds/soundeffect/shoot.wav")
     self.disparou = true
 end
 

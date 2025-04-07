@@ -27,6 +27,8 @@ for i = 0, 5 do
 end
 
 function mapa1.load(gameState)
+    
+    musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
     selecionandoSpawn = true
     selecionandoPlayer = true
 
@@ -144,10 +146,12 @@ end
 local function verificarVitoria()
     if (player1 and not player1.visible) or (player1 and player1.life == 0) then
         textoMensagem = "Player 2 venceu!"
+        musica:changeMusicGradually("sounds/soundtrack/win.ogg", false)
         mensagemExibida = true
         tempoIniciado = false
     elseif (player2 and not player2.visible) or (player2 and player2.life == 0) then
         textoMensagem = "Player 1 venceu!"
+        musica:changeMusicGradually("sounds/soundtrack/win.ogg", false)
         mensagemExibida = true
         tempoIniciado = false
     end
@@ -204,6 +208,11 @@ end
 
 -- Função principal
 function mapa1.update(dt)
+    for _, agua in ipairs(aguasMapa1) do
+        agua:update(dt)
+    end
+
+    
     if not selecionandoSpawn then
         atualizarTempo(dt)
         verificarVitoria()
