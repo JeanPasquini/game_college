@@ -25,17 +25,15 @@ function config.load()
 
             -- Verifique o tipo de valor na matriz
             if valor == 1 then
-                  local cor = config.cores[1] or {1, 1, 1}
                   local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
                   local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
                   local objeto = Objeto.new(px, py, imagemValor)  -- Passando a imagem da grama
                   table.insert(config.objetos, objeto)
             elseif valor == 2 then
                 -- Água
-                local cor = config.cores[valor] or {1, 1, 1}
                 local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
                 local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
-                local agua = Agua.new(px, py, cor, imagemValor)  -- Passe imagemValor para a água
+                local agua = Agua.new(px, py)  -- Passe imagemValor para a água
                 table.insert(config.aguas, agua)
             end
         end

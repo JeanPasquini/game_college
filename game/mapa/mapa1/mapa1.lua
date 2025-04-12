@@ -4,62 +4,82 @@ local mapa1 = {}
 local config = require("mapa.generator.config")
 local debug = require("debug.debug")
 local Player = require("player.player")
-local Rules = require("mapa.mapa1.rules") 
+local functionAgua = require("mapa.mapa1.functions.agua") 
+local functionObjeto = require("mapa.mapa1.functions.objeto") 
+local functionProjetile = require("mapa.mapa1.functions.projectile") 
 
 local player1
 local player2
 local turno = 1 
 local objetosMapa1 = {}
 local aguasMapa1 = {}
-local tempoIniciado = false -- Flag para verificar se o tempo começou
-local tempoTurno = 20 -- Tempo do turno em segundos
+local tempoIniciado = false
+local tempoTurno = 20
 local tempoRestante = tempoTurno
 
+local selecionandoPlayer
+local selecionandoSpawn
+
+local lifeImages = {}
+
+for i = 0, 5 do
+    lifeImages[i] = love.graphics.newImage("resources/sprites/lifebar/sprite_" .. i .. ".png")
+end
+
 function mapa1.load(gameState)
+    
+    musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
+    selecionandoSpawn = true
+    selecionandoPlayer = true
+
     mapa1.gameState = gameState
     mapa1.debugAtivo = false
     config.load()
-    debug.load() 
- 
+    debug.load()
+
     background = love.graphics.newImage("resources/backgrounds/background5.png")
-    
-    player1 = Player.new(1100, 100, "1")
-    player2 = Player.new(200, 100, "2") 
-    
+
     for _, objeto in ipairs(config.objetos) do
         table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.valorImagem))
     end
-    
+
     for _, agua in ipairs(config.aguas) do
         table.insert(aguasMapa1, Agua.new(agua.x, agua.y, agua.cor))
     end
 end
 
+--------------------------------------------------------------------------------------------------------------------
 
-function mapa1.draw()
+-- Draws Area
+
+function drawBackground()
     local windowWidth, windowHeight = love.graphics.getDimensions()
     local bgWidth, bgHeight = background:getDimensions()
     local scaleX = windowWidth / bgWidth
     local scaleY = windowHeight / bgHeight
     local scale = math.max(scaleX, scaleY)
-    
     love.graphics.draw(background, 0, 0, 0, scale, scale)
+end
 
+function drawObjects()
     for _, objeto in ipairs(objetosMapa1) do
         objeto:draw()
     end
-    
     for _, agua in ipairs(aguasMapa1) do
         agua:draw()
     end
+end
+
+function drawPlayers()
     if player1 and player1.visible then
         player1:draw()
     end
-
     if player2 and player2.visible then
         player2:draw()
     end
+end
 
+function drawHud()
     debug.draw(mapa1.debugAtivo, player1)
     debug.draw(mapa1.debugAtivo, player2)
 
@@ -75,89 +95,151 @@ function mapa1.draw()
     love.graphics.setColor(0, 0, 0)
     love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 16))
     love.graphics.printf(string.format("%.1f", tempoRestante), 0, 52, love.graphics.getWidth(), "center")
-    love.graphics.setColor(1, 1, 1)
 
-    if mensagemExibida then
+    if player1 then
         love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 60))
-        love.graphics.printf(textoMensagem, 0, love.graphics.getHeight() / 2, love.graphics.getWidth(), "center")
+        drawLifeBar(player1)
+    end
+
+    if player2 then
+        love.graphics.setColor(1, 1, 1)
+        drawLifeBar(player2)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+end
+
+function drawMessage()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 60))
+    love.graphics.printf(textoMensagem, 0, love.graphics.getHeight() / 2, love.graphics.getWidth(), "center")
+end
+
+--------------------------------------------------------------------------------------------------------------------
+
+-- Function Areas
+function drawLifeBar(player)
+    local windowWidth, windowHeight = love.graphics.getDimensions()
+    local lifeImage = lifeImages[player.life]
+
+    if lifeImage then
+        local scale = 2 
+        local imageWidth = lifeImage:getWidth() * scale
+        local posY = 20 
+
+        if player == player1 then
+            local posX = (windowWidth / 4) - (imageWidth / 2)
+            love.graphics.draw(lifeImage, posX, posY, 0, scale, scale)
+        elseif player == player2 then
+            local posX = (3 * windowWidth / 4) - (imageWidth / 2)
+            love.graphics.draw(lifeImage, posX, posY, 0, scale, scale)
+        end
     end
 end
 
-function love.keypressed(key)
-    -- Quando qualquer tecla for pressionada, o tempo começa
-    if not tempoIniciado then
-        tempoIniciado = true
-        tempoRestante = tempoTurno -- Reinicia o tempo do turno
-    end
-end
-
-
-
-function mapa1.update(dt)
-    -- Só atualiza o timer se o tempo já foi iniciado
+local function atualizarTempo(dt)
     if tempoIniciado then
         tempoRestante = tempoRestante - dt
     end
-
-    -- Verifica se algum jogador perdeu
-    if player1 and not player1.visible then
-        -- Player 2 venceu
-        textoMensagem = "Player 2 venceu!"
-        mensagemExibida = true
-        tempoIniciado = false -- Interrompe o tempo
-    elseif player2 and not player2.visible then
-        -- Player 1 venceu
-        textoMensagem = "Player 1 venceu!"
-        mensagemExibida = true
-        tempoIniciado = false -- Interrompe o tempo
-    end
-
-    -- Quando o tempo acabar, troca o turno e exibe a mensagem de quem é a vez
-    if tempoRestante <= 0 then
-        turno = (turno == 1) and 2 or 1  -- Alterna entre 1 e 2
-        tempoRestante = tempoTurno       -- Reinicia o tempo
-        tempoIniciado = false
-        mensagemExibida = true  -- Ativa a exibição da mensagem
-        textoMensagem = "Vez de Player " .. turno  -- Define o texto da mensagem
-    end
-    
-    -- Controle do jogador
-    if turno == 1 and tempoIniciado then
-        player1:handleInput(dt)
-    elseif turno == 2 and tempoIniciado then
-        player2:handleInput(dt)
-    end 
-
-    -- Verifica disparos para troca de turno
-    if turno == 1 and player1 and player1.visible then
-        if player1.disparou then
-            player1.disparou = false 
-            tempoRestante = 4
-        end
-    elseif turno == 2 and player2 and player2.visible then
-        if player2.disparou then
-            player2.disparou = false
-            tempoRestante = 4
-        end
-    end
-
-    -- Atualiza jogadores e física
-    player1:applyPhysics(dt)
-    player2:applyPhysics(dt)
-    player1:updateProjectiles(dt)
-    player2:updateProjectiles(dt)
-    
-    -- Regras de colisão
-    Rules.handleCollisions(player1, objetosMapa1)
-    Rules.handleCollisionsAgua(player1, aguasMapa1)
-    Rules.handleProjectileCollisions(player1, objetosMapa1)
-    Rules.handleCollisions(player2, objetosMapa1)
-    Rules.handleCollisionsAgua(player2, aguasMapa1)
-    Rules.handleProjectileCollisions(player2, objetosMapa1)
 end
 
+local function verificarVitoria()
+    if (player1 and not player1.visible) or (player1 and player1.life == 0) then
+        textoMensagem = "Player 2 venceu!"
+        musica:changeMusicGradually("sounds/soundtrack/win.ogg", false)
+        mensagemExibida = true
+        tempoIniciado = false
+    elseif (player2 and not player2.visible) or (player2 and player2.life == 0) then
+        textoMensagem = "Player 1 venceu!"
+        musica:changeMusicGradually("sounds/soundtrack/win.ogg", false)
+        mensagemExibida = true
+        tempoIniciado = false
+    end
+end
 
+local function verificarTrocaDeTurno()
+    if tempoRestante <= 0 then
+        turno = (turno == 1) and 2 or 1
+        player1.disparou = false
+        player2.disparou = false
+        tempoRestante = tempoTurno
+        tempoIniciado = false
+        mensagemExibida = true
+        textoMensagem = "Vez de Player " .. turno
+    end
+end
+
+local function controlarJogador(dt)
+    if turno == 1 and tempoIniciado then
+        player1:handleInput(dt)
+        player1:updateProjectiles(dt)
+        if player1.disparou then
+            if tempoRestante > 4 then
+                tempoRestante = 4
+            end
+        end
+    elseif turno == 2 and tempoIniciado then
+        player2:handleInput(dt)
+        player2:updateProjectiles(dt)
+        if player2.disparou then
+            if tempoRestante > 4 then
+                tempoRestante = 4
+            end
+        end
+    end
+end
+
+local function atualizarJogadores(dt)
+    player1:applyPhysics(dt)
+    player2:applyPhysics(dt)
+    player1:lifePlayer(dt)
+    player2:lifePlayer(dt)
+end
+
+local function verificarColisoes()
+    functionObjeto.handleCollisions(player1, objetosMapa1)
+    functionObjeto.handleCollisions(player2, objetosMapa1)
+    functionAgua.handleCollisionsAgua(player1, aguasMapa1)
+    functionAgua.handleCollisionsAgua(player2, aguasMapa1)
+    functionProjetile.handleProjectileCollisions({player1, player2}, objetosMapa1)
+end
+
+--------------------------------------------------------------------------------------------------------------------
+
+-- Função principal
+function mapa1.update(dt)
+    for _, agua in ipairs(aguasMapa1) do
+        agua:update(dt)
+    end
+
+    
+    if not selecionandoSpawn then
+        atualizarTempo(dt)
+        verificarVitoria()
+        verificarTrocaDeTurno()
+        controlarJogador(dt)
+        atualizarJogadores(dt)
+        verificarColisoes()
+    end
+end
+
+-- Draw Principal
+function mapa1.draw()
+    love.graphics.setColor(1, 1, 1)
+    drawBackground()
+    drawObjects()
+    drawPlayers()
+
+    if not selecionandoSpawn then
+        drawHud()
+    end
+    
+    if mensagemExibida then
+        drawMessage()
+    end
+end
+
+--------------------------------------------------------------------------------------------------------------------
 
 function mapa1.keypressed(key)
     if key == "'" then
@@ -169,6 +251,27 @@ function mapa1.keypressed(key)
     end
     if mensagemExibida then
         mensagemExibida = false
+    end
+end
+
+function mapa1.mousepressed(x, y, button)
+    if selecionandoSpawn and button == 1 then
+        if selecionandoPlayer then
+            player1 = Player.new(x, y, "1")
+            selecionandoPlayer = false
+        else
+            player2 = Player.new(x, y, "2")
+            selecionandoSpawn = false
+        end
+    end
+end
+
+function love.keypressed(key)
+    if not selecionandoSpawn then
+        if not tempoIniciado then
+            tempoIniciado = true
+            tempoRestante = tempoTurno
+        end
     end
 end
 

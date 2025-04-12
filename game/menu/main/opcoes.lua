@@ -26,32 +26,10 @@ function opcoes.load(gameState)
         acao = function() opcoes.gameState.estado = "menu" end,
         hover = false
     }
-
-    -- Carrega o som de fundo
-    local success, som = pcall(love.audio.newSource, "som-de-fundo.mp3", "stream")
-    if success then
-        opcoes.som = som
-        opcoes.som:setLooping(true)  -- Faz o som de fundo repetir continuamente
-        opcoes.som:play()  -- Inicia o som de fundo
-    else
-        print("Erro: Arquivo de som-de-fundo não encontrado! Verifique o nome e a extensão do arquivo.")
-        opcoes.som = nil
-    end
-
-    -- Define o volume inicial (0 a 1)
-    opcoes.volume = 0.2
-    love.audio.setVolume(opcoes.volume)
 end
 
 function opcoes.update(dt)
-    -- Aumenta ou diminui o volume com as teclas + e -
-    if love.keyboard.isDown("kp+") then
-        opcoes.volume = math.min(opcoes.volume + 0.1 * dt, 1.0)  -- Aumenta o volume (máximo 1.0)
-        love.audio.setVolume(opcoes.volume)
-    elseif love.keyboard.isDown("kp-") then
-        opcoes.volume = math.max(opcoes.volume - 0.1 * dt, 0.0)  -- Diminui o volume (mínimo 0.0)
-        love.audio.setVolume(opcoes.volume)
-    end
+
 end
 
 function opcoes.draw()
@@ -63,13 +41,6 @@ function opcoes.draw()
     love.graphics.setColor(1, 1, 1)  -- Texto branco
     love.graphics.printf("Opções", 0, 100, love.graphics.getWidth(), "center")
     
-    love.graphics.setFont(opcoes.fonte)
-    love.graphics.printf("Controle o som com (+) e (-)", 0, 240, love.graphics.getWidth(), "center")
-
-    -- Exibe o volume atual na tela
-    love.graphics.setFont(opcoes.fonte)
-    love.graphics.printf("Volume: " .. tostring(math.floor(opcoes.volume * 100)) .. "%", 0, 300, love.graphics.getWidth(), "center")
-
     -- Botão "Voltar" (estilo igual ao do menu)
     if opcoes.botaoVoltar.hover then
         love.graphics.setColor(0.06, 0.28, 0.5)  -- DodgerBlue mais escuro (hover)
