@@ -7,6 +7,10 @@ local Player = require("player.player")
 local functionAgua = require("mapa.mapa1.functions.agua") 
 local functionObjeto = require("mapa.mapa1.functions.objeto") 
 local functionProjetile = require("mapa.mapa1.functions.projectile") 
+local Camera = require("mapa.mapa1.functions.cam")
+
+local camera = Camera.new(1920, 1080, 1.2)  -- A câmera será limitada à resolução 1920x1080 com zoom 1.2
+
 
 local player1
 local player2
@@ -83,31 +87,42 @@ function drawHud()
     debug.draw(mapa1.debugAtivo, player1)
     debug.draw(mapa1.debugAtivo, player2)
 
+    local centerX, centerY = love.graphics.getWidth() / 2, 60
+    local radius = 40
+
+    -- Fundo do contador mais bonito
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.circle("fill", centerX, centerY, radius + 6)
+
+    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+    love.graphics.circle("fill", centerX, centerY, radius)
+
+    -- Arco de tempo
+    love.graphics.setColor(0.8, 0.3, 0.3)
+    love.graphics.arc("fill", centerX, centerY, radius, -math.pi / 2, -math.pi / 2 + (tempoRestante / tempoTurno) * (2 * math.pi))
+
+    -- Texto do tempo
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Turno: Player " .. turno, 10, 10)
-
-    love.graphics.setColor(0.2, 0.2, 0.2, 0.5)
-    love.graphics.circle("fill", love.graphics.getWidth() / 2, 60, 40)
-
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.arc("fill", love.graphics.getWidth() / 2, 60, 40, -math.pi / 2, -math.pi / 2 + (tempoRestante / tempoTurno) * (2 * math.pi))
-
-    love.graphics.setColor(0, 0, 0)
     love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 16))
-    love.graphics.printf(string.format("%.1f", tempoRestante), 0, 52, love.graphics.getWidth(), "center")
+    love.graphics.printf(string.format("%.1f", tempoRestante), 0, centerY - 8, love.graphics.getWidth(), "center")
 
+    -- Texto do turno embaixo do contador
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 10))
+    love.graphics.printf(turno, 0, centerY + 40, love.graphics.getWidth(), "center")
+
+    -- Barras de vida
     if player1 then
-        love.graphics.setColor(1, 1, 1)
         drawLifeBar(player1)
     end
 
     if player2 then
-        love.graphics.setColor(1, 1, 1)
         drawLifeBar(player2)
     end
 
     love.graphics.setColor(1, 1, 1)
 end
+
 
 function drawMessage()
     love.graphics.setColor(1, 1, 1)
@@ -164,10 +179,12 @@ local function verificarTrocaDeTurno()
         player2.disparou = false
         tempoRestante = tempoTurno
         tempoIniciado = false
+
         mensagemExibida = true
-        textoMensagem = "Vez de Player " .. turno
+        textoMensagem = "Vez de " .. ((turno == 1 and player1.name) or player2.name)
     end
 end
+
 
 local function controlarJogador(dt)
     if turno == 1 and tempoIniciado then
@@ -188,6 +205,58 @@ local function controlarJogador(dt)
         end
     end
 end
+
+local tempoAposDesaparecimento = 0
+local posicaoUltimoProjeteil = nil
+
+local function atualizarCamera(dt)
+    local playerAtual = (turno == 1) and player1 or player2
+    local projeteis = playerAtual.projectiles
+    local ultimoProjetil = projeteis[#projeteis]
+
+    if ultimoProjetil then
+        -- Segue o último projétil
+        posicaoUltimoProjeteil = { x = ultimoProjetil.x, y = ultimoProjetil.y }
+        tempoAposDesaparecimento = 0
+        camera:update(dt, ultimoProjetil)
+    elseif posicaoUltimoProjeteil and tempoAposDesaparecimento < 2 then
+        -- Se projétil desapareceu recentemente, mantém a câmera por 2 segundos
+        tempoAposDesaparecimento = tempoAposDesaparecimento + dt
+        camera:setPosition(posicaoUltimoProjeteil.x, posicaoUltimoProjeteil.y)
+    elseif playerAtual and playerAtual.visible then
+        -- Após os 2 segundos, volta a seguir o jogador
+        camera:update(dt, playerAtual)
+        posicaoUltimoProjeteil = nil
+    end
+end
+
+function updateMensagem(dt)
+    if not mensagemExibida then return end
+
+    if mensagemEstado == "entrando" then
+        mensagemX = mensagemX + mensagemVelocidade * dt
+        if mensagemX >= (love.graphics.getWidth() / 2 - 150) then
+            mensagemX = love.graphics.getWidth() / 2 - 150
+            mensagemEstado = "parado"
+            mensagemTempo = 0
+        end
+
+    elseif mensagemEstado == "parado" then
+        mensagemTempo = mensagemTempo + dt
+        if mensagemTempo >= mensagemDuracaoParado then
+            mensagemEstado = "saindo"
+        end
+
+    elseif mensagemEstado == "saindo" then
+        mensagemX = mensagemX - mensagemVelocidade * dt
+        if mensagemX < -400 then
+            mensagemExibida = false
+        end
+    end
+end
+
+
+
 
 local function atualizarJogadores(dt)
     player1:applyPhysics(dt)
@@ -220,24 +289,37 @@ function mapa1.update(dt)
         controlarJogador(dt)
         atualizarJogadores(dt)
         verificarColisoes()
+        atualizarCamera(dt)
+        updateMensagem(dt)
     end
 end
 
 -- Draw Principal
 function mapa1.draw()
     love.graphics.setColor(1, 1, 1)
+
+    if not selecionandoSpawn then
+        love.graphics.push()
+        love.graphics.scale(camera.zoom)
+        love.graphics.translate(-camera.cameraX, -camera.cameraY)
+    end
+
     drawBackground()
     drawObjects()
     drawPlayers()
 
     if not selecionandoSpawn then
-        drawHud()
+        love.graphics.pop() -- Restaura o sistema de coordenadas
     end
-    
+
+    -- Elementos fixos na tela (HUD)
+    drawHud()
+
     if mensagemExibida then
         drawMessage()
     end
 end
+
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -274,5 +356,4 @@ function love.keypressed(key)
         end
     end
 end
-
 return mapa1
