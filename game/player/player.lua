@@ -132,7 +132,13 @@ function Player:updateProjectiles(dt)
         -- Movimenta o projétil na direção do ângulo
         proj.x = proj.x + proj.speed * math.cos(proj.angle)
         proj.y = proj.y + proj.speed * math.sin(proj.angle)
+
+        if proj.x < 0 or proj.x > 1920 or proj.y > 1080 then
+            table.remove(self.projectiles, i)
+        end
     end
+
+
 end
 
 function Player:shoot()
@@ -187,5 +193,10 @@ function Player:draw()
     -- Reseta a espessura da linha para o padrão
     love.graphics.setLineWidth(4)  
 end
+
+function Player:getPosition()
+    return self.x, self.y
+end
+
 
 return Player
