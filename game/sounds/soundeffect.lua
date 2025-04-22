@@ -1,7 +1,7 @@
 local soundeffect = {}
 
 soundeffect.effects = {}     -- Cache de efeitos carregados
-soundeffect.volume = 0.1       -- Volume global dos efeitos
+soundeffect.volume = 0.5       -- Volume global dos efeitos
 soundeffect.playing = {}     -- Lista de efeitos atualmente tocando
 
 -- Carrega ou reutiliza o efeito sonoro
