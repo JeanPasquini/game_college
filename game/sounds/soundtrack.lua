@@ -3,10 +3,10 @@ local soundtrack = {}
 soundtrack.currentMusic = nil
 soundtrack.currentPath = nil
 soundtrack.targetPath = nil
-soundtrack.volume = 0.5 -- volume final desejado
-soundtrack.currentVolume = 0 -- volume atual durante fade
-soundtrack.fadeSpeed = 1 -- segundos
-soundtrack.state = "idle" -- idle, fading_in, fading_out
+soundtrack.volume = 0.5
+soundtrack.currentVolume = 0 
+soundtrack.fadeSpeed = 1 
+soundtrack.state = "idle" 
 
 function soundtrack:play(path, loop)
     self:stop()

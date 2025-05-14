@@ -7,7 +7,8 @@ function Player.new(x, y, name)
     self.x = x or 0
     self.y = y or 0
     self.name = name or ""
-    self.life = 5
+    self.life = 100
+    self.maxLife = 100
     self.speed = 0.5
     self.visible = true
     self.velocidadeY = 0
@@ -15,25 +16,29 @@ function Player.new(x, y, name)
     self.pulando = false
     self.disparando = false
     self.alturaMaximaDoPulo = -2.8
-    self.projectiles = {} -- Lista para armazenar os projéteis
-    self.anguloTiro = 0 -- Ângulo inicial da seta
-    self.raioMira = 30 -- Raio da área de tiro
-    self.lastShotTime = 0 -- Tempo do último disparo
-    self.shootCooldown = 1 -- Tempo de espera entre disparos (em segundos)
+    self.projectiles = {}
+    self.anguloTiro = 0
+    self.raioMira = 30
+    self.lastShotTime = 0
+    self.shootCooldown = 1
     self.forcaTiro = 0
-    self.maxForca = 30 -- Força máxima do tiro
+    self.maxForca = 30
     self.knockbackX = 0
     self.knockbackY = 0
+    self.damage = 100
+    self.mostrarMira = false
 
-    
     self.shootSound = love.audio.newSource("sounds/soundeffect/explosion.wav", "static")
     self.jumpSound = love.audio.newSource("sounds/soundeffect/jump.wav", "static")
-    
-    self.disparou = false -- Variável para controlar se já disparou
+
+    self.disparou = false
+
     font = love.graphics.newFont("font/PressStart2P-Regular.ttf", 10)
     love.graphics.setFont(font)
+
     return self
 end
+
 
 
 function Player:newProjectile(startX, startY, angle, speed)
@@ -48,21 +53,22 @@ function Player:newProjectile(startX, startY, angle, speed)
 end
 
 function Player:update(dt)
-    self:handleInput(dt)    -- Lida com os controles de teclado
-    self:applyPhysics(dt)   -- Aplica a física do personagem
-    self:updateProjectiles(dt)  -- Atualiza os projéteis
+    self:handleInput(dt)
+    self:applyPhysics(dt)
+    self:updateProjectiles(dt)
+    atualizarFumacas(dt)
 end
 
--- Lida com a entrada do teclado
+
 function Player:handleInput(dt)
     if not self.disparando then
-        if love.keyboard.isDown('a') or love.keyboard.isDown('left')then
+        if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
             self.x = self.x - self.speed
-        elseif love.keyboard.isDown('d') or love.keyboard.isDown('right')then
+            self.viradoParaDireita = false 
+        elseif love.keyboard.isDown('d') or love.keyboard.isDown('right') then
             self.x = self.x + self.speed
+            self.viradoParaDireita = true 
         end
-
-        -- Pulo
         if love.keyboard.isDown('space') and self.velocidadeY == 0 then
             self.velocidadeY = self.alturaMaximaDoPulo
             efeitoSonoro:play("sounds/soundeffect/jump.wav")
@@ -75,9 +81,8 @@ function Player:lifePlayer(dt)
         self.visible = false
     end
 end
--- Aplica a física do personagem (gravidade, movimentação vertical)
+
 function Player:applyPhysics(dt)
-    -- Aplica a gravidade ao jogador
     if self.velocidadeY == 0 then
         self.pulando = false
     else
@@ -93,17 +98,14 @@ function Player:applyPhysics(dt)
         
     end
 
-    -- Exemplo dentro do update do jogador
     self.x = self.x + self.knockbackX * dt
     self.y = self.y + self.knockbackY * dt
 
-    -- Reduz gradualmente o knockback
     self.knockbackX = self.knockbackX * 0.9
     self.knockbackY = self.knockbackY * 0.9
 
 end
 
--- Atualiza os projéteis
 function Player:updateProjectiles(dt)
     if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
         self.anguloTiro = self.anguloTiro - 0.05
@@ -115,21 +117,19 @@ function Player:updateProjectiles(dt)
         if love.keyboard.isDown('f') or love.keyboard.isDown('p')then
             self.disparando = true
             if self.forcaTiro < self.maxForca then
-                self.forcaTiro = self.forcaTiro + 0.5 -- Aumenta a força aos poucos
+                self.forcaTiro = self.forcaTiro + 0.5
             end
         elseif self.forcaTiro > 0 then
             self.disparando = false
-            self:shoot() -- Dispara quando a tecla 'f' é solta
-            self.forcaTiro = 0 -- Reseta a força
+            self:shoot()
+            self.forcaTiro = 0
         end    
     end
 
     for i, proj in ipairs(self.projectiles) do
-        -- Aplica a gravidade no projétil
         proj.velocidadeY = proj.velocidadeY + (self.gravidade * 2)
         proj.y = proj.y + proj.velocidadeY
-        
-        -- Movimenta o projétil na direção do ângulo
+
         proj.x = proj.x + proj.speed * math.cos(proj.angle)
         proj.y = proj.y + proj.speed * math.sin(proj.angle)
 
@@ -142,57 +142,173 @@ function Player:updateProjectiles(dt)
 end
 
 function Player:shoot()
-    local startX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
-    local startY = self.y + 16 + self.raioMira * math.sin(self.anguloTiro)
-    self:newProjectile(startX, startY, self.anguloTiro, self.forcaTiro)
+
+    local canhaoComprimento = 45 
+    local canhaoX = self.x + 32 + canhaoComprimento * math.cos(self.anguloTiro)
+    local canhaoY = self.y + 10 + canhaoComprimento * math.sin(self.anguloTiro)
+    
+    self:newProjectile(canhaoX, canhaoY, self.anguloTiro, self.forcaTiro)
     efeitoSonoro:play("sounds/soundeffect/shoot.wav")
     self.disparou = true
+
+    criarFumaca(canhaoX, canhaoY, self.anguloTiro)
 end
 
 
+
 function Player:draw()
-    love.graphics.setFont(font) 
-    -- Desenha o nome do jogador acima do personagem
-    love.graphics.setColor(1, 1, 1) -- Cor branca
-    love.graphics.print("Player " .. self.name, self.x + 16 - (font:getWidth("Player " .. self.name) / 2), self.y - 30)
+    local playerImage = love.graphics.newImage("resources/sprites/tank/tank.png")
+    local canhaoImage = love.graphics.newImage("resources/sprites/tank/canhao.png")
+
+    love.graphics.setFont(font)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("Player " .. self.name, self.x + 32 - (font:getWidth("Player " .. self.name) / 2), self.y - 30)
 
     love.graphics.polygon("fill", 
-        self.x + 16, self.y - 25 + font:getHeight() + 6, -- Ponta para baixo
-        self.x + 16 - 6, self.y - 25 + font:getHeight(), -- Esquerda
-        self.x + 16 + 6, self.y - 25 + font:getHeight()  -- Direita
+        self.x + 32, self.y - 25 + font:getHeight() + 6, 
+        self.x + 32 - 6, self.y - 25 + font:getHeight(), 
+        self.x + 32 + 6, self.y - 25 + font:getHeight() 
     )
 
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle('fill', self.x, self.y, 32, 32)
-    love.graphics.setColor(1, 1, 1)
-    -- Aumenta a espessura da linha de mira
-    love.graphics.setLineWidth(4)  
+    love.graphics.push()
+    if self.viradoParaDireita then
+        love.graphics.scale(-1, 1)
+        love.graphics.draw(playerImage, -self.x - playerImage:getWidth(), self.y)
+    else
+        love.graphics.draw(playerImage, self.x, self.y)
+    end
+    love.graphics.pop()
 
-    -- Desenha a seta de mira
-    local miraX = self.x + 16 + self.raioMira * math.cos(self.anguloTiro)
-    local miraY = self.y + 16 + self.raioMira * math.sin(self.anguloTiro)
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.line(self.x + 16, self.y + 16, miraX, miraY)
-    love.graphics.circle('fill', miraX, miraY, 5)
-    -- Desenha os projéteis
+    love.graphics.push()
+    love.graphics.translate(self.x + 32, self.y + 8) 
+    love.graphics.rotate(self.anguloTiro)
+    
+
+    love.graphics.scale(-1, 1) 
+
+    love.graphics.draw(canhaoImage, -canhaoImage:getWidth(), -canhaoImage:getHeight()/2) 
+    love.graphics.pop()  
+
+    love.graphics.setColor(1, 1, 1)
+
+    local miraX = self.x + 32 + self.raioMira * math.cos(self.anguloTiro)
+    local miraY = self.y + 8 + self.raioMira * math.sin(self.anguloTiro)
+
     for _, proj in ipairs(self.projectiles) do
         love.graphics.setColor(1, 1, 0)
-        love.graphics.circle('fill', proj.x, proj.y, 5)
+        love.graphics.rectangle('fill', proj.x, proj.y, 10, 10)
     end
 
     love.graphics.setColor(1, 1, 1)
 
-    -- Desenha a barra de força acompanhando a linha de mira
-    local barraForcaX = self.x + 16
-    local barraForcaY = self.y + 16
-    local barraForcaFimX = barraForcaX + self.forcaTiro * math.cos(self.anguloTiro)
-    local barraForcaFimY = barraForcaY + self.forcaTiro * math.sin(self.anguloTiro)
+    if self.mostrarMira then
+        local miraDistanteX = self.x + 32 + (self.raioMira + 60) * math.cos(self.anguloTiro)
+        local miraDistanteY = self.y + 8 + (self.raioMira + 60) * math.sin(self.anguloTiro)
 
-    love.graphics.setColor(0, 1, 0)
-    love.graphics.line(barraForcaX, barraForcaY, barraForcaFimX, barraForcaFimY)
-    -- Reseta a espessura da linha para o padrão
-    love.graphics.setLineWidth(4)  
+        love.graphics.setColor(0, 1, 0)
+        local size = 22
+        love.graphics.setLineWidth(2)
+
+        love.graphics.line(miraDistanteX, miraDistanteY - size, miraDistanteX, miraDistanteY + size)
+        love.graphics.line(miraDistanteX - size, miraDistanteY, miraDistanteX + size, miraDistanteY)
+
+        local squareSize = 28
+        love.graphics.rectangle("line", miraDistanteX - squareSize / 2, miraDistanteY - squareSize / 2, squareSize, squareSize)
+
+        local origemX = miraX
+        local origemY = miraY
+        local destinoX = miraDistanteX
+        local destinoY = miraDistanteY
+
+        local dx = destinoX - origemX
+        local dy = destinoY - origemY
+        local distanciaTotal = math.sqrt(dx * dx + dy * dy)
+
+        local maxBolinhas = 10
+        local espacamento = distanciaTotal / maxBolinhas
+
+        local numBolinhas = math.floor((self.forcaTiro / self.maxForca) * maxBolinhas)
+
+        for i = 1, numBolinhas do
+            local progress = i / maxBolinhas
+            local bolinhaX = origemX + i * espacamento * math.cos(self.anguloTiro)
+            local bolinhaY = origemY + i * espacamento * math.sin(self.anguloTiro)
+            
+            local bolinhaSize = 8 + progress * 10
+            love.graphics.setColor(progress, 1 - progress, 0)
+        
+            love.graphics.rectangle("fill", bolinhaX - bolinhaSize / 2, bolinhaY - bolinhaSize / 2, bolinhaSize, bolinhaSize)
+        end
+    end
+
 end
+
+local smokeAnimations = {}
+
+local smokeSprites = {}
+for i = 1, 10 do
+    smokeSprites[i] = love.graphics.newImage(string.format("resources/sprites/smoke/smoke%d.png", i))
+end
+
+local smokeAnimations = {}
+
+local smokeSprites = {}
+for i = 1, 10 do
+    smokeSprites[i] = love.graphics.newImage(string.format("resources/sprites/smoke/smoke%d.png", i))
+end
+
+function criarFumaca(canhaoX, canhaoY, angle)
+    local novaFumaca = {
+        x = canhaoX,
+        y = canhaoY,
+        angle = angle,
+        frame = 1,
+        frameDuration = 0.05,
+        timeElapsed = 0
+    }
+    table.insert(smokeAnimations, novaFumaca)
+end
+
+function atualizarFumacas(dt)
+    for i = #smokeAnimations, 1, -1 do
+        local fumaca = smokeAnimations[i]
+        fumaca.timeElapsed = fumaca.timeElapsed + dt
+        if fumaca.timeElapsed >= fumaca.frameDuration then
+            fumaca.timeElapsed = 0
+            fumaca.frame = fumaca.frame + 1
+            if fumaca.frame > #smokeSprites then
+                table.remove(smokeAnimations, i)
+            end
+        end
+    end
+end
+
+function desenharFumacas()
+    for _, fumaca in ipairs(smokeAnimations) do
+        local sprite = smokeSprites[fumaca.frame]
+        local largura = sprite:getWidth()
+        local altura = sprite:getHeight()
+        
+        local escala = 2
+
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(
+            sprite,
+            fumaca.x, 
+            fumaca.y, 
+            fumaca.angle, 
+            escala, 
+            escala, 
+            largura / 2, 
+            altura / 2
+        )
+        love.graphics.setColor(1, 1, 1)
+    end
+end
+
+
+
+
 
 function Player:getPosition()
     return self.x, self.y

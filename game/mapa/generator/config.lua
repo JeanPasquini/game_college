@@ -1,4 +1,6 @@
 local Objeto = require("mapa.library.objeto")
+local ObjetoInquebravel = require("mapa.library.objetoInquebravel")
+local ObjetoCenario = require("mapa.library.objetoCenario")
 local Agua = require("mapa.library.agua")
 local config = {}
 
@@ -6,35 +8,44 @@ function config.load()
     config.largura = 1920
     config.altura = 1080
     config.tamanhoQuadrado = 16
-    config.matriz = require("mapa.mapa1.matriz")        -- Matriz de valores (0, 1, 2...)
-    config.imagemMatriz = require("mapa.mapa1.matrizTiles")  -- Matriz de imagens associadas ao objeto
+    config.matriz = require("mapa.mapa1.matriz")        
+    config.imagemMatriz = require("mapa.mapa1.matrizTiles")
     config.cores = {
-        [0] = {0.25, 0.25, 0.25},  -- Cor para valor 0
-        [1] = {0, 1, 0},           -- Cor para valor 1 (verde)
-        [2] = {0, 0, 1}            -- Cor para valor 2 (azul)
+        [0] = {0.25, 0.25, 0.25},  
+        [1] = {0, 1, 0},           
+        [2] = {0, 0, 1}           
     }
 
     config.maxQuadradosPorLinha = math.floor(config.largura / config.tamanhoQuadrado)
     config.objetos = {}
+    config.objetosInquebravel = {}
+    config.objetosCenario = {}
     config.aguas = {}
     
     for y, linha in ipairs(config.matriz) do
         for x, valor in ipairs(linha) do
-            -- Pegue o valor da imagem associada à posição (x, y)
             local imagemValor = config.imagemMatriz[y] and config.imagemMatriz[y][x] or nil
 
-            -- Verifique o tipo de valor na matriz
             if valor == 1 then
                   local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
                   local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
-                  local objeto = Objeto.new(px, py, imagemValor)  -- Passando a imagem da grama
+                  local objeto = Objeto.new(px, py, imagemValor)
                   table.insert(config.objetos, objeto)
             elseif valor == 2 then
-                -- Água
                 local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
                 local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
-                local agua = Agua.new(px, py)  -- Passe imagemValor para a água
+                local agua = Agua.new(px, py, imagemValor) 
                 table.insert(config.aguas, agua)
+            elseif valor == 3 then
+                  local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
+                  local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
+                  local objetoInquebravel = ObjetoInquebravel.new(px, py, imagemValor)
+                  table.insert(config.objetosInquebravel, objetoInquebravel)
+            elseif valor == 4 then
+                  local px = (x - 1) % config.maxQuadradosPorLinha * config.tamanhoQuadrado
+                  local py = math.floor((x - 1) / config.maxQuadradosPorLinha) * config.tamanhoQuadrado
+                  local objetoCenario = ObjetoCenario.new(px, py, imagemValor)
+                  table.insert(config.objetosCenario, objetoCenario)
             end
         end
     end

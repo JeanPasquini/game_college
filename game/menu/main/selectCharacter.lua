@@ -8,7 +8,7 @@ function selectCharacter.load(gameState, quantidadeJogadores)
     selectCharacter.quantidadeJogadores = quantidadeJogadores
     visiblePlayers = 2
     plusButtons = {}
-    fontPlayerName = love.graphics.newFont("font/PressStart2P-Regular.ttf", 14)  -- Carrega a fonte personalizada
+    fontPlayerName = love.graphics.newFont("font/PressStart2P-Regular.ttf", 14) 
     background = love.graphics.newImage("resources/backgrounds/background5.png")
 end
 
@@ -25,12 +25,11 @@ end
 local function getScaledDimensions()
     local screenWidth, screenHeight = love.graphics.getDimensions()
     
-    -- Definindo as dimensões com base nas proporções da tela
-    local squareSize = screenWidth * 0.2  -- 20% da largura da tela
-    local margin = screenWidth * 0.05     -- 5% da largura da tela
-    local buttonWidth = screenWidth * 0.2 -- 20% da largura da tela
-    local buttonHeight = screenHeight * 0.08  -- 8% da altura da tela
-    local buttonSpacing = screenHeight * 0.02  -- 2% da altura da tela
+    local squareSize = screenWidth * 0.2 
+    local margin = screenWidth * 0.05   
+    local buttonWidth = screenWidth * 0.2 
+    local buttonHeight = screenHeight * 0.08 
+    local buttonSpacing = screenHeight * 0.02  
     
     return squareSize, margin, screenWidth, screenHeight, buttonWidth, buttonHeight, buttonSpacing
 end
@@ -47,7 +46,7 @@ local function drawShadow(x, y, width, height)
 end
 
 function selectCharacter.update(dt)
-    -- Atualizações futuras
+
 end
 
 function selectCharacter.draw()
@@ -56,18 +55,15 @@ function selectCharacter.draw()
 
     local squareSize, margin, screenWidth, screenHeight, buttonWidth, buttonHeight, buttonSpacing = getScaledDimensions()
     
-    -- Cálculo para centralizar os quadrados na tela
     local totalWidth = 4 * (squareSize + margin) - margin
     local offsetX = (screenWidth - totalWidth) / 2
 
     plusButtons = {}
 
     for i = 1, 4 do
-        -- Calcula a posição de cada quadrado com base nas proporções
         local x = (i - 1) * (squareSize + margin) + offsetX
-        local y = screenHeight * 0.25  -- Posiciona os quadrados no 25% da altura da tela
+        local y = screenHeight * 0.25  
 
-        -- Sombra e preenchimento do quadrado
         drawShadow(x, y, squareSize, squareSize)
         love.graphics.setColor(0.18, 0.12, 0.19) -- #2D1E2F (bordô escuro)
         love.graphics.rectangle("fill", x, y, squareSize, squareSize, 15)
@@ -78,15 +74,13 @@ function selectCharacter.draw()
             love.graphics.setFont(fontPlayerName)
             love.graphics.setColor(1, 1, 1)
 
-            -- Centraliza o nome acima da imagem
             local textWidth = fontPlayerName:getWidth(playerName)
             local textX = x + (squareSize - textWidth) / 2
-            local textY = y - (screenHeight * 0.05)  -- Ajuste do nome com base na altura da tela
+            local textY = y - (screenHeight * 0.05) 
 
             love.graphics.print(playerName, textX, textY)
 
-            -- Redimensiona a imagem com base no tamanho do quadrado
-            local imageSize = squareSize - (screenWidth * 0.05)  -- 5% de margem
+            local imageSize = squareSize - (screenWidth * 0.05) 
             local imageX = x + (squareSize - imageSize) / 2
             local imageY = y + (squareSize - imageSize) / 2
 
@@ -111,36 +105,33 @@ function selectCharacter.draw()
         end
     end
 
-    -- Botões
     local buttonX1 = screenWidth * 0.5 - buttonWidth - buttonSpacing * 0.5
     local buttonX2 = screenWidth * 0.5 + buttonSpacing * 0.5
 
     local buttons = {
         {
             x = buttonX1,
-            y = screenHeight * 0.85,  -- 85% da altura da tela
+            y = screenHeight * 0.85, 
             width = buttonWidth,
             height = buttonHeight,
             text = "JOGAR",
             action = function()
                 selectCharacter.quantidadeJogadores = visiblePlayers
-                selectCharacter.gameState.estado = "mapa1"
+                trocarEstado("mapa1")
             end
         },
         {
             x = buttonX2,
-            y = screenHeight * 0.85,  -- 85% da altura da tela
+            y = screenHeight * 0.85,
             width = buttonWidth,
             height = buttonHeight,
             text = "VOLTAR",
             action = function()
-                selectCharacter.gameState.estado = "menu"
+                trocarEstado("menu")
             end
         }
     }
     
-
-    -- Desenho dos botões
     for _, button in ipairs(buttons) do
         local hover = love.mouse.getX() > button.x and love.mouse.getX() < button.x + button.width and
                     love.mouse.getY() > button.y and love.mouse.getY() < button.y + button.height
@@ -155,7 +146,6 @@ function selectCharacter.draw()
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(fontPlayerName)
 
-        -- Ajuste para centralizar o texto verticalmente
         local textWidth = fontPlayerName:getWidth(button.text)
         local textHeight = fontPlayerName:getHeight(button.text)
         local textX = button.x + (button.width - textWidth) / 2

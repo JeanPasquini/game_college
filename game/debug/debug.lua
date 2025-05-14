@@ -25,10 +25,9 @@ function debug.draw(debugAtivo, player)
         end
     end
 
-    -- Exibir a velocidadeY acima do personagem
     if player and debugAtivo then
-      love.graphics.setFont(debug.fontePequena) -- Definir a fonte pequena
-      love.graphics.setColor(1, 1, 1) -- Cor branca
+      love.graphics.setFont(debug.fontePequena)
+      love.graphics.setColor(1, 1, 1)
       love.graphics.print("Velocidade Y: " .. string.format("%.2f", player.velocidadeY), player.x + 20, player.y - 40)
       love.graphics.print("Força: " .. string.format("%.2f", player.forcaTiro), player.x + 20, player.y - 60)
       love.graphics.print("Pulando: " .. tostring(player.pulando), player.x + 20, player.y - 80)

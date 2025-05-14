@@ -1,39 +1,49 @@
--- Ctrl + B para executar
-
-love.window.setMode(1920, 1080, { fullscreen = false, resizable = false })  -- Corrigido "façse" para "false"
+love.window.setMode(1920, 1080, { fullscreen = false, resizable = false })
 
 local menu = require("menu.main.menu")
+local pauseMenu = require("menu.ingame.pauseMenu")
+
 local creditos = require("menu.main.creditos")
 local selectCharacter = require("menu.main.selectCharacter")
-local mapa1 = require("mapa.mapa1.mapa1")  -- Certifique-se de que o mapa1 foi carregado corretamente
+local mapa1 = require("mapa.mapa1.mapa1")
+local transition = require("menu.main.transition")
+local estadoParaTrocar = nil
 
-local gameState = { estado = "menu", estadoCarregado = nil }  -- Adicionado o estadoCarregado para controle de carregamento de estado
+local gameState = { estado = "menu", estadoCarregado = nil }
+
+
+function trocarEstado(novoEstado)
+    if gameState.estado ~= novoEstado and not transition.isActive() then
+        estadoParaTrocar = novoEstado
+        transition.start(function()
+            gameState.estado = estadoParaTrocar
+            if gameState.estado == "selectCharacter" then
+                selectCharacter.load(gameState, quantidadeJogadores)
+            elseif gameState.estado == "menu" or gameState.estado == "configuracao" then
+                menu.load(gameState)
+            elseif gameState.estado == "mapa1" then
+                mapa1.load(gameState, selectCharacter.quantidadeJogadores)
+            elseif gameState.estado == "creditos" then
+                creditos.load(gameState)
+            end
+            gameState.estadoCarregado = gameState.estado
+        end)
+    end
+end
+
 local quantidadeJogadores = 2
 
--- Carregar música e efeitos sonoros
 _G.musica = require("sounds/soundtrack")
 _G.efeitoSonoro = require("sounds/soundeffect")
 
 function love.load()
-    musica:play("sounds/soundtrack/main.ogg")  -- Ajuste para utilizar a variável correta para música
+    musica:play("sounds/soundtrack/main.ogg") 
     menu.load(gameState)  
 end
 
 function love.update(dt)
-    musica:update(dt)  -- Atualizar música
-
-    -- Verificar se o estado foi carregado
-    if gameState.estado ~= gameState.estadoCarregado then
-        if gameState.estado == "selectCharacter" then
-            selectCharacter.load(gameState, quantidadeJogadores)
-        elseif gameState.estado == "menu" or gameState.estado == "configuracao" then
-            menu.load(gameState)
-        elseif gameState.estado == "mapa1" then
-            mapa1.load(gameState, selectCharacter.quantidadeJogadores)
-        end
-        gameState.estadoCarregado = gameState.estado
-    end
-
+    musica:update(dt)  
+    transition.update(dt)
     if gameState.estado == "selectCharacter" then
         selectCharacter.update(dt)
     elseif gameState.estado == "mapa1" then
@@ -53,6 +63,9 @@ function love.draw()
     elseif gameState.estado == "creditos" then
         creditos.draw()
     end
+
+    transition.draw()
+
 end
 
 function love.mousepressed(x, y, button)
@@ -85,7 +98,6 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.keypressed(key)
-    -- Lidar com pressionamento de teclas
     if gameState.estado == "selectCharacter" then
         selectCharacter.keypressed(key)
     elseif gameState.estado == "mapa1" then
