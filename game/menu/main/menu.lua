@@ -167,6 +167,8 @@ end
 
 
 function menu.mousemoved(x, y)
+    if not menu.botoes or not menu.configuracaoBotoes then return end
+
     for _, botao in ipairs(menu.botoes) do
         botao.hover = x > botao.x and x < botao.x + botao.largura and y > botao.y and y < botao.y + botao.altura
     end
@@ -174,5 +176,6 @@ function menu.mousemoved(x, y)
         botao.hover = x > botao.x and x < botao.x + botao.largura and y > botao.y and y < botao.y + botao.altura
     end
 end
+
 
 return menu

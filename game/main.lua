@@ -40,14 +40,53 @@ local quantidadeJogadores = 2
 _G.musica = require("sounds/soundtrack")
 _G.efeitoSonoro = require("sounds/soundeffect")
 
+local gifFrames = {}
+local gifIndex = 1
+local gifTimer = 0
+local gifFrameDuration = 0.04 -- 12.5 FPS
+local gifPlaying = true
+local gifTotalTime = 0
+local gifSkipTime = 153 * gifFrameDuration -- duração total da animação em segundos
+
+function carregarGif()
+    local i = 0
+    while true do
+        local filename = string.format("resources/gif/0515-%d.png", i)
+        if love.filesystem.getInfo(filename) then
+            table.insert(gifFrames, love.graphics.newImage(filename))
+            i = i + 1
+        else
+            break
+        end
+    end
+end
+
+
 function love.load()
-    musica:play("sounds/soundtrack/main.ogg") 
-    menu.load(gameState)  
+    carregarGif()
+    -- Só carrega o menu depois do gif
+    musica:play("sounds/soundtrack/main.ogg")
 end
 
 function love.update(dt)
-    musica:update(dt)  
+    if gifPlaying then
+        gifTimer = gifTimer + dt
+        gifTotalTime = gifTotalTime + dt
+        if gifTimer >= gifFrameDuration then
+            gifTimer = gifTimer - gifFrameDuration
+            gifIndex = gifIndex + 1
+            if gifIndex > #gifFrames then gifIndex = 1 end
+        end
+        if gifTotalTime >= gifSkipTime then
+            gifPlaying = false
+            menu.load(gameState)
+        end
+        return
+    end
+
+    musica:update(dt)
     transition.update(dt)
+
     if gameState.estado == "selectCharacter" then
         selectCharacter.update(dt)
     elseif gameState.estado == "mapa1" then
@@ -59,7 +98,19 @@ function love.update(dt)
     end
 end
 
+
 function love.draw()
+    if gifPlaying then
+        if gifFrames[gifIndex] then
+            local img = gifFrames[gifIndex]
+            love.graphics.draw(img, 0, 0, 0,
+                love.graphics.getWidth() / img:getWidth(),
+                love.graphics.getHeight() / img:getHeight()
+            )
+        end
+        return
+    end
+
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
         menu.draw()
     elseif gameState.estado == "selectCharacter" then
@@ -69,11 +120,10 @@ function love.draw()
     elseif gameState.estado == "creditos" then
         creditos.draw()
     end
-    
-    
-    transition.draw()
 
+    transition.draw()
 end
+
 
 function love.mousepressed(x, y, button)
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
