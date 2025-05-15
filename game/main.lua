@@ -1,9 +1,9 @@
-love.window.setMode(1920, 1080, { fullscreen = false, resizable = false })
+love.window.setMode(1920, 1080, { fullscreen = true, resizable = false })
 
 local menu = require("menu.main.menu")
 local pauseMenu = require("menu.ingame.pauseMenu")
 
-local creditos = require("menu.main.creditos")
+local creditos = require("menu/main/creditos")
 local selectCharacter = require("menu.main.selectCharacter")
 local mapa1 = require("mapa.mapa1.mapa1")
 local transition = require("menu.main.transition")
@@ -24,7 +24,11 @@ function trocarEstado(novoEstado)
             elseif gameState.estado == "mapa1" then
                 mapa1.load(gameState, selectCharacter.quantidadeJogadores)
             elseif gameState.estado == "creditos" then
-                creditos.load(gameState)
+                --if estadoAtual ~= creditos then
+                  --  creditos.reset()
+                    creditos.load()
+                    estadoAtual = creditos
+                --end
             end
             gameState.estadoCarregado = gameState.estado
         end)
@@ -50,6 +54,8 @@ function love.update(dt)
         mapa1.update(dt)
     elseif gameState.estado == "menu" or gameState.estado == "configuracao" then
         creditos.update(dt)
+    elseif estadoAtual and estadoAtual.update then
+        estadoAtual.update(dt)
     end
 end
 
@@ -63,7 +69,8 @@ function love.draw()
     elseif gameState.estado == "creditos" then
         creditos.draw()
     end
-
+    
+    
     transition.draw()
 
 end
@@ -94,6 +101,9 @@ function love.mousemoved(x, y, dx, dy)
         if mapa1.mousemoved then
             mapa1.mousemoved(x, y, dx, dy)
         end
+    end
+    if estadoAtual and estadoAtual.mousemoved then
+        estadoAtual.mousemoved(x, y)
     end
 end
 
