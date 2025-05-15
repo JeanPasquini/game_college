@@ -126,6 +126,8 @@ end
 
 
 function love.mousepressed(x, y, button)
+    if gifPlaying then return end  -- Impede cliques durante o GIF
+
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
         menu.mousepressed(x, y, button)
     elseif gameState.estado == "selectCharacter" then
