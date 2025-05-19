@@ -520,7 +520,7 @@ function mapa1.draw()
     end
 
     drawHud()
-    pauseMenu.drawPauseButton()
+    --pauseMenu.drawPauseButton()
     pauseMenu.draw()
 end
 

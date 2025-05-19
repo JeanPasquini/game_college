@@ -11,7 +11,6 @@ local estadoParaTrocar = nil
 
 local gameState = { estado = "menu", estadoCarregado = nil }
 
-
 function trocarEstado(novoEstado)
     if gameState.estado ~= novoEstado and not transition.isActive() then
         estadoParaTrocar = novoEstado
@@ -24,11 +23,8 @@ function trocarEstado(novoEstado)
             elseif gameState.estado == "mapa1" then
                 mapa1.load(gameState, selectCharacter.quantidadeJogadores)
             elseif gameState.estado == "creditos" then
-                --if estadoAtual ~= creditos then
-                  --  creditos.reset()
-                    creditos.load()
-                    estadoAtual = creditos
-                --end
+                creditos.load()
+                estadoAtual = creditos
             end
             gameState.estadoCarregado = gameState.estado
         end)
@@ -43,10 +39,15 @@ _G.efeitoSonoro = require("sounds/soundeffect")
 local gifFrames = {}
 local gifIndex = 1
 local gifTimer = 0
-local gifFrameDuration = 0.04 -- 12.5 FPS
+local gifFrameDuration = 0.04
 local gifPlaying = true
 local gifTotalTime = 0
-local gifSkipTime = 153 * gifFrameDuration -- duração total da animação em segundos
+local gifSkipTime = 153 * gifFrameDuration
+
+-- Teclas (sprites)
+local keyImages = {}
+local keyState = {}
+local pauseImage
 
 function carregarGif()
     local i = 0
@@ -61,10 +62,31 @@ function carregarGif()
     end
 end
 
+function carregarTeclas()
+    local teclas = {
+        { nome = "cima", tecla = "up" },
+        { nome = "baixo", tecla = "down" },
+        { nome = "esquerda", tecla = "left" },
+        { nome = "direita", tecla = "right" },
+        { nome = "F", tecla = "f" },
+        { nome = "space", tecla = "space" }
+    }
+
+    for _, t in ipairs(teclas) do
+        keyImages[t.tecla] = {
+            normal = love.graphics.newImage("resources/keyboard/" .. t.nome .. ".png"),
+            ativo = love.graphics.newImage("resources/keyboard/" .. t.nome .. "A.png")
+        }
+        keyState[t.tecla] = false
+    end
+
+    -- Carregar imagem do botão de pause
+    pauseImage = love.graphics.newImage("resources/keyboard/pause.png")
+end
 
 function love.load()
     carregarGif()
-    -- Só carrega o menu depois do gif
+    carregarTeclas()
     musica:play("sounds/soundtrack/main.ogg")
 end
 
@@ -98,7 +120,6 @@ function love.update(dt)
     end
 end
 
-
 function love.draw()
     if gifPlaying then
         if gifFrames[gifIndex] then
@@ -117,6 +138,40 @@ function love.draw()
         selectCharacter.draw()
     elseif gameState.estado == "mapa1" then
         mapa1.draw()
+
+        -- Desenhar teclas
+        local screenWidth = love.graphics.getWidth()
+        local screenHeight = love.graphics.getHeight()
+        local padding = 20
+        local tamanho = 60
+        local xBase = screenWidth - tamanho - padding
+        local yBase = screenHeight - tamanho - padding
+
+        local ordem = {
+            { key = "up", dx = 0, dy = -tamanho },
+            { key = "down", dx = 0, dy = 0 },
+            { key = "left", dx = -tamanho, dy = 0 },
+            { key = "right", dx = tamanho, dy = 0 },
+            { key = "space", dx = 0, dy = tamanho },
+            { key = "f", dx = 0, dy = tamanho * 2 }
+        }
+
+        for _, info in ipairs(ordem) do
+            local imgSet = keyImages[info.key]
+            if imgSet then
+                local img = keyState[info.key] and imgSet.ativo or imgSet.normal
+                if img then
+                    love.graphics.draw(img, xBase + info.dx, yBase + info.dy)
+                end
+            end
+        end
+
+        -- Desenhar imagem de pause no canto superior direito
+        if pauseImage then
+            local pauseX = love.graphics.getWidth() - pauseImage:getWidth() - 20
+            local pauseY = 20
+            love.graphics.draw(pauseImage, pauseX, pauseY)
+        end
     elseif gameState.estado == "creditos" then
         creditos.draw()
     end
@@ -124,23 +179,35 @@ function love.draw()
     transition.draw()
 end
 
-
 function love.mousepressed(x, y, button)
-    if gifPlaying then return end  -- Impede cliques durante o GIF
+    if gifPlaying then return end
 
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
         menu.mousepressed(x, y, button)
     elseif gameState.estado == "selectCharacter" then
         selectCharacter.mousepressed(x, y, button)
     elseif gameState.estado == "mapa1" then
+        -- Verificar clique na imagem pause.png
+        if pauseImage then
+            local px = love.graphics.getWidth() - pauseImage:getWidth() - 20
+            local py = 20
+            local pw = pauseImage:getWidth()
+            local ph = pauseImage:getHeight()
+
+            if x >= px and x <= px + pw and y >= py and y <= py + ph then
+                pauseMenu.toggle()
+                return
+            end
+        end
+
         mapa1.mousepressed(x, y, button)
     elseif gameState.estado == "creditos" then
-        creditos.mousepressed(x, y, button) 
+        creditos.mousepressed(x, y, button)
     end
 end
 
-function love.mousemoved(x, y, dx, dy)
 
+function love.mousemoved(x, y, dx, dy)
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
         if menu.mousemoved then
             menu.mousemoved(x, y, dx, dy)
@@ -160,9 +227,19 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.keypressed(key)
+    if keyState[key] ~= nil then
+        keyState[key] = true
+    end
+
     if gameState.estado == "selectCharacter" then
         selectCharacter.keypressed(key)
     elseif gameState.estado == "mapa1" then
         mapa1.keypressed(key)
+    end
+end
+
+function love.keyreleased(key)
+    if keyState[key] ~= nil then
+        keyState[key] = false
     end
 end
