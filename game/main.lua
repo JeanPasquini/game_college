@@ -278,7 +278,6 @@ function love.mousepressed(x, y, button)
                 return
             end
         end
-    mapa1.mousepressed(x, y, button)
 
         mapa1.mousepressed(x, y, button)
     elseif gameState.estado == "creditos" then
