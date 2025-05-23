@@ -2,6 +2,7 @@ love.window.setMode(1920, 1080, { fullscreen = true, resizable = false })
 
 local menu = require("menu.main.menu")
 local pauseMenu = require("menu.ingame.pauseMenu")
+local musicaIntro
 
 local creditos = require("menu/main/creditos")
 local selectCharacter = require("menu.main.selectCharacter")
@@ -39,7 +40,7 @@ _G.efeitoSonoro = require("sounds/soundeffect")
 local gifFrames = {}
 local gifIndex = 1
 local gifTimer = 0
-local gifFrameDuration = 0.04
+local gifFrameDuration = 0.097
 local gifPlaying = true
 local gifTotalTime = 0
 local gifSkipTime = 153 * gifFrameDuration
@@ -87,7 +88,10 @@ end
 function love.load()
     carregarGif()
     carregarTeclas()
-    musica:play("sounds/soundtrack/main.ogg")
+    musicaIntro = love.audio.newSource("sounds/soundtrack/intro.MP3", "stream")
+    musicaIntro:setLooping(false)
+    musicaIntro:play()
+
 end
 
 function love.update(dt)
@@ -101,7 +105,11 @@ function love.update(dt)
         end
         if gifTotalTime >= gifSkipTime then
             gifPlaying = false
+            if musicaIntro then
+                musicaIntro:stop()
+            end
             menu.load(gameState)
+            musica:play("sounds/soundtrack/main.ogg")
         end
         return
     end
