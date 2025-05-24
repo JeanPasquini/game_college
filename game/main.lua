@@ -1,4 +1,4 @@
-love.window.setMode(1920, 1080, { fullscreen = true, resizable = false })
+love.window.setMode(1920, 1080, { fullscreen = false, resizable = false })
 
 local menu = require("menu.main.menu")
 local pauseMenu = require("menu.ingame.pauseMenu")

@@ -12,6 +12,8 @@ local functionProjetile = require("mapa.mapa1.functions.projectile")
 local Camera = require("mapa.mapa1.functions.cam")
 local pauseMenu = require("menu.ingame.pauseMenu")
 
+local backgroundFunction = require("mapa.mapa1.functions.background")
+
 local miraInicialAtivada = false
 
 
@@ -75,7 +77,7 @@ function mapa1.restart()
     end
 
     musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
-    background = love.graphics.newImage("resources/backgrounds/background5.png")
+    --background = love.graphics.newImage("resources/backgrounds/background5.png")
     pauseMenu.setMapa(mapa1)
     if pauseMenu.isVisible then pauseMenu.isVisible = false end
     pixelClouds = {}
@@ -84,6 +86,7 @@ end
 
 
 function mapa1.load(gameState, quantidadeJogadores)
+    backgroundFunction.load()
     tanqueIcon = love.graphics.newImage("resources/sprites/tank/idleTank.png")
     musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
     mapa1.gameState = gameState
@@ -98,7 +101,7 @@ function mapa1.load(gameState, quantidadeJogadores)
     config.load()
     debug.load()
 
-    background = love.graphics.newImage("resources/backgrounds/background5.png")
+    --background = love.graphics.newImage("resources/backgrounds/background5.png")
 
     for _, objeto in ipairs(config.objetos) do
         table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.valorImagem))
@@ -121,13 +124,13 @@ function mapa1.load(gameState, quantidadeJogadores)
     mapa1.restart()
 end
 
-function drawBackground()
-    local windowWidth, windowHeight = love.graphics.getDimensions()
-    local scaleX = windowWidth / background:getWidth()
-    local scaleY = windowHeight / background:getHeight()
-    local scale = math.max(scaleX, scaleY)
-    love.graphics.draw(background, 0, 0, 0, scale, scale)
-end
+--function drawBackground()
+--    local windowWidth, windowHeight = love.graphics.getDimensions()
+--    local scaleX = windowWidth / background:getWidth()
+--    local scaleY = windowHeight / background:getHeight()
+--    local scale = math.max(scaleX, scaleY)
+--    love.graphics.draw(background, 0, 0, 0, scale, scale)
+--end
 
 function drawObjects()
     for _, objeto in ipairs(objetosMapa1) do
@@ -407,7 +410,7 @@ local function verificarTrocaDeTurno()
         tempoRestante = tempoTurno
         tempoIniciado = false
         mensagemExibida = true
-        textoMensagem = "Vez de " .. players[turno].name
+        textoMensagem = "Turno do Player " .. players[turno].name
 
         for i, player in ipairs(players) do
             player.mostrarMira = (i == turno)
@@ -420,11 +423,14 @@ local function controlarJogador(dt)
     if tempoIniciado then
         playerAtual:handleInput(dt)
         playerAtual:updateProjectiles(dt)
-        if playerAtual.disparou and tempoRestante > 4 then
+        if playerAtual.disparou and #playerAtual.projectiles == 1 then
+            tempoRestante = 4
+        elseif playerAtual.disparou and #playerAtual.projectiles == 0 and tempoRestante > 4 then
             tempoRestante = 4
         end
     end
 end
+
 
 local tempoAposDesaparecimento = 0
 local posicaoUltimoProjeteil = nil
@@ -460,6 +466,7 @@ local function verificarColisoes()
         functionObjetoInquebravel.handleCollisions(player, objetosInquebravelMapa1)
         functionAgua.handleCollisionsAgua(player, aguasMapa1)
     end
+    -- Necessidade de otimizar !!!
     functionProjetile.handleProjectileCollisions(players, objetosMapa1, objetosInquebravelMapa1, objetosCenarioMapa1)
 end
 
@@ -505,7 +512,8 @@ function mapa1.draw()
         love.graphics.translate(-camera.cameraX, -camera.cameraY)
     end
 
-    drawBackground()
+    --drawBackground()
+    backgroundFunction.draw(camera.cameraX, camera.zoom)
     drawObjects()
     drawPlayers()
     desenharEfeitosDeTexto()

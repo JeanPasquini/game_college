@@ -7,14 +7,14 @@ DESENVOLVIMENTO E CRIAÇÃO
 
 GAME DESIGNER PRINCIPAL:
 Jean Pasquini
-Amanda
+Amanda Lucchesi
 
 PROGRAMADORES:
 Filipi Biazoto
 Jean Pasquini
 
 DESIGN DE PERSONAGENS E ARTE:
-Amanda
+Amanda Lucchesi
 
 MÚSICA E EFEITOS SONOROS:
 Filipi Biazoto
@@ -45,7 +45,7 @@ ChatGPT (elementos gráficos e assets)
 
 AGRADECIMENTOS ESPECIAIS
 
-Amanda, forneceu muita colaboração pelas artes e seu conhecimento em game designer.
+Amanda Lucchesi, forneceu muita colaboração pelas artes e seu conhecimento em game designer.
 GitHub Community, ajudou em consultas e ideias para melhorarmos o nosso progressos.
 
 AGRADECIMENTO A TODO CORPO DOCENTE:
@@ -62,7 +62,7 @@ PRODUTOR EXECUTIVO:
 Jean Pasquini
 
 DIRETOR DE ARTE:
-Amanda
+Amanda Lucchesi
 
 COORDENAÇÃO TÉCNICA:
 Filipi Biazoto
