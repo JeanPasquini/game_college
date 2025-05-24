@@ -1,46 +1,43 @@
 local Camera = {}
 Camera.__index = Camera
 
-function Camera.new(cameraLimitX, cameraLimitY, zoom)
-    local self = setmetatable({}, Camera)
-    self.cameraX = 0
-    self.cameraY = 0
-    self.cameraLimitX = cameraLimitX
-    self.cameraLimitY = cameraLimitY
-    self.zoom = zoom or 1.2
-    self.smoothSpeed = 5 
-    return self
+function Camera.new(limitX, limitY, zoom)
+    return setmetatable({
+        cameraX = 0,
+        cameraY = 0,
+        cameraLimitX = limitX,
+        cameraLimitY = limitY,
+        zoom = zoom or 1.2,
+        smoothSpeed = 5
+    }, Camera)
+end
+
+local function clamp(value, min, max)
+    return math.max(min, math.min(value, max))
 end
 
 local function lerp(a, b, t)
     return a + (b - a) * t
 end
 
+local function getZoomedWindowSize(zoom)
+    local w, h = love.graphics.getDimensions()
+    return w / zoom, h / zoom
+end
+
 function Camera:update(dt, target)
-    local windowWidth, windowHeight = love.graphics.getDimensions()
-    local windowWidthZoomed, windowHeightZoomed = windowWidth / self.zoom, windowHeight / self.zoom
-    local targetX, targetY = target.x, target.y
-
-    local desiredX = targetX - windowWidthZoomed / 2
-    local desiredY = targetY - windowHeightZoomed / 2
-
-    desiredX = math.max(0, math.min(desiredX, self.cameraLimitX - windowWidthZoomed))
-    desiredY = math.max(0, math.min(desiredY, self.cameraLimitY - windowHeightZoomed))
+    local zoomedW, zoomedH = getZoomedWindowSize(self.zoom)
+    local desiredX = clamp(target.x - zoomedW / 2, 0, self.cameraLimitX - zoomedW)
+    local desiredY = clamp(target.y - zoomedH / 2, 0, self.cameraLimitY - zoomedH)
 
     self.cameraX = lerp(self.cameraX, desiredX, dt * self.smoothSpeed)
     self.cameraY = lerp(self.cameraY, desiredY, dt * self.smoothSpeed)
 end
 
 function Camera:setPosition(x, y)
-    local windowWidth, windowHeight = love.graphics.getDimensions()
-    local windowWidthZoomed = windowWidth / self.zoom
-    local windowHeightZoomed = windowHeight / self.zoom
-
-    local cameraX = x - windowWidthZoomed / 2
-    local cameraY = y - windowHeightZoomed / 2
-
-    self.cameraX = math.max(0, math.min(cameraX, self.cameraLimitX - windowWidthZoomed))
-    self.cameraY = math.max(0, math.min(cameraY, self.cameraLimitY - windowHeightZoomed))
+    local zoomedW, zoomedH = getZoomedWindowSize(self.zoom)
+    self.cameraX = clamp(x - zoomedW / 2, 0, self.cameraLimitX - zoomedW)
+    self.cameraY = clamp(y - zoomedH / 2, 0, self.cameraLimitY - zoomedH)
 end
 
 return Camera

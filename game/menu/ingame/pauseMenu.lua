@@ -42,13 +42,13 @@ function pauseMenu.toggle()
     pauseMenu.isVisible = not pauseMenu.isVisible
 end
 
-function pauseMenu.drawPauseButton()
-    love.graphics.setColor(0.2, 0.2, 0.2)
-    love.graphics.rectangle("fill", love.graphics.getWidth() - 110, 10, 100, 40)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(fontRegular)
-    love.graphics.print("Pause", love.graphics.getWidth() - 90, 20)
-end
+--function pauseMenu.drawPauseButton()
+   -- love.graphics.setColor(0.2, 0.2, 0.2)
+    --love.graphics.rectangle("fill", love.graphics.getWidth() - 110, 10, 100, 40)
+    --love.graphics.setColor(1, 1, 1)
+    --love.graphics.setFont(fontRegular)
+    --love.graphics.print("Pause", love.graphics.getWidth() - 90, 20)
+--end
 
 function pauseMenu.draw()
     if not pauseMenu.isVisible then return end
