@@ -89,7 +89,7 @@ function calcularDanoPorProximidade(proj, target)
     local dist2 = dx * dx + dy * dy
     local distanciaMaxima2 = 100 * 100
     if dist2 > distanciaMaxima2 then return 0 end
-    local danoMaximo = target.damage
+    local danoMaximo = proj.damage
     local danoFinal = danoMaximo * (1 - dist2 / distanciaMaxima2)
     return math.floor(danoFinal)
 end

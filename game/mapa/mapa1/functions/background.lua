@@ -12,7 +12,7 @@ function background.load()
         {
             image = love.graphics.newImage("resources/backgrounds/paralax/clouds.png"),
             parallax = 0.4,
-            y = 350
+            y = 300
         },
         {
             image = love.graphics.newImage("resources/backgrounds/paralax/sea.png"),
@@ -22,7 +22,7 @@ function background.load()
         {
             image = love.graphics.newImage("resources/backgrounds/paralax/far-grounds.png"),
             parallax = 0.9,
-            y = 850
+            y = 800
         }
     }
 end
