@@ -2,8 +2,13 @@ Player = {}
 Player.__index = Player
 local font
 
-function Player.new(x, y, name)
+function Player.new(x, y, name, tipoTanque)
     local self = setmetatable({}, Player)
+
+    -- Inicializa cor padrão do tanque (branco)
+    self.r, self.g, self.b = 1, 1, 1
+
+    self.tipoTanque = tipoTanque
     self.x = x or 0
     self.y = y or 0
     self.name = name or ""
@@ -28,6 +33,35 @@ function Player.new(x, y, name)
     self.damage = 100
     self.mostrarMira = false
 
+if tipoTanque == 1 then
+    self.life = 150
+    self.damage = 100
+    self.alturaMaximaDoPulo = -2.8
+    self.maxLife = 150
+    self.r, self.g, self.b = 1, 1, 1
+elseif tipoTanque == 2 then
+    self.life = 250
+    self.damage = 75
+    self.alturaMaximaDoPulo = -2.0
+    self.maxLife = 250
+    self.r, self.g, self.b = 1, 0.4, 0.4
+elseif tipoTanque == 3 then
+    self.life = 150
+    self.damage = 75
+    self.alturaMaximaDoPulo = -4.2
+    self.maxLife = 150
+    self.r, self.g, self.b = 0.5, 0.9, 0.9
+elseif tipoTanque == 4 then
+    self.life = 100
+    self.damage = 200
+    self.alturaMaximaDoPulo = -2.0
+    self.maxLife = 100
+    self.r, self.g, self.b = 0.3, 0.5, 1
+end
+
+
+
+
     self.shootSound = love.audio.newSource("sounds/soundeffect/explosion.wav", "static")
     self.jumpSound = love.audio.newSource("sounds/soundeffect/jump.wav", "static")
 
@@ -48,6 +82,7 @@ function Player:newProjectile(startX, startY, angle, speed)
         speed = speed,
         angle = angle,
         velocidadeY = 0,
+        damage = self.damage
     }
     table.insert(self.projectiles, projectile)
 end
@@ -173,8 +208,10 @@ function Player:draw()
     love.graphics.push()
     if self.viradoParaDireita then
         love.graphics.scale(-1, 1)
+        love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
         love.graphics.draw(playerImage, -self.x - playerImage:getWidth(), self.y)
     else
+        love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
         love.graphics.draw(playerImage, self.x, self.y)
     end
     love.graphics.pop()
@@ -182,12 +219,12 @@ function Player:draw()
     love.graphics.push()
     love.graphics.translate(self.x + 32, self.y + 8) 
     love.graphics.rotate(self.anguloTiro)
-    
-
     love.graphics.scale(-1, 1) 
+ 
+    love.graphics.draw(canhaoImage, -canhaoImage:getWidth(), -canhaoImage:getHeight()/2)
+    love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
+    love.graphics.pop()
 
-    love.graphics.draw(canhaoImage, -canhaoImage:getWidth(), -canhaoImage:getHeight()/2) 
-    love.graphics.pop()  
 
     love.graphics.setColor(1, 1, 1)
 

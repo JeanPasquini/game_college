@@ -41,6 +41,16 @@ local maxPixelClouds = 6
 local selecionandoPlayer = true
 local selecionandoSpawn = true
 
+-- Carregue seus ícones de tanque no love.load ou onde preferir
+tanqueIcons = {
+    [1] = love.graphics.newImage("resources/icons/icon_tanque_comum.png"),
+    [2] = love.graphics.newImage("resources/icons/icon_tanque_goliath_x.png"),
+    [3] = love.graphics.newImage("resources/icons/icon_tanque_lightning_viper.png"),
+    [4] = love.graphics.newImage("resources/icons/icon_tanque_doombringer.png")
+    -- Adicione mais tipos de tanque conforme necessário
+}
+
+
 function mapa1.restart()
     turno = 1
     tempoRestante = tempoTurno
@@ -171,27 +181,34 @@ function drawLifeBar(player, index)
     local iconCenterX = iconX + iconSize / 2
     local iconCenterY = iconY + iconSize / 2
 
+    -- Fundo arredondado do ícone
     love.graphics.setColor(1, 1, 1, 0.2) 
-    love.graphics.rectangle("fill", iconX - 8, iconY - 8, iconSize + 16, iconSize + 16)  
+    love.graphics.rectangle("fill", iconX - 8, iconY - 8, iconSize + 16, iconSize + 16)
 
     love.graphics.setColor(0.1, 0.1, 0.1)  
-    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize) 
+    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize, 8)  -- Bordas arredondadas
 
     love.graphics.setColor(1, 1, 1, 0.1) 
-    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize)
+    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize, 8)
 
-    love.graphics.setColor(1, 1, 1) 
-    love.graphics.draw(
-        tanqueIcon,
-        iconCenterX,
-        iconCenterY,
-        0, 
-        1,
-        1, 
-        tanqueIcon:getWidth() / 2,
-        tanqueIcon:getHeight() / 2
-    )
+    -- Seleciona o ícone correto baseado no tipoTanque
+    local iconImage = tanqueIcons[player.tipoTanque] or tanqueIcons[1]  -- Usa o tipo 1 como padrão se não achar
 
+    if iconImage then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(
+            iconImage,
+            iconCenterX,
+            iconCenterY,
+            0,
+            iconSize / iconImage:getWidth() * 0.8,  -- Escala proporcional
+            iconSize / iconImage:getHeight() * 0.8,
+            iconImage:getWidth() / 2,
+            iconImage:getHeight() / 2
+        )
+    end
+
+    -- Barra de vida
     love.graphics.setColor(0.7, 0.7, 0.7)  
     love.graphics.rectangle("fill", posX - border, posY - border, barWidth + border * 2, barHeight + border * 2)
 
@@ -207,7 +224,6 @@ function drawLifeBar(player, index)
         love.graphics.setColor(0.8, 0.3, 0.3)  
     end
     love.graphics.rectangle("fill", posX, posY, filledWidth, barHeight)
-
 
     love.graphics.setColor(1, 1, 1, 0.2) 
     love.graphics.rectangle("fill", posX, posY, filledWidth, barHeight / 2)
@@ -232,6 +248,7 @@ function drawLifeBar(player, index)
 
     love.graphics.setColor(1, 1, 1)
 end
+
 
 
 function initializePixelClouds()
@@ -537,7 +554,13 @@ function mapa1.mousepressed(x, y, button)
 
         if jogadoresContados < mapa1.quantidadeJogadores then
             local novoJogadorID = tostring(jogadoresContados + 1)
-            local novoJogador = Player.new(x, y, novoJogadorID)
+            
+            -- pega o tipo selecionado para o jogador atual
+            local tipoTanque = tankTypes[jogadoresContados + 1] or 1  -- default 1 caso não tenha
+            
+            -- cria o jogador passando tipoTanque como argumento extra
+            local novoJogador = Player.new(x, y, novoJogadorID, tipoTanque)
+            
             table.insert(players, novoJogador)
             jogadoresContados = jogadoresContados + 1
 
@@ -549,6 +572,7 @@ function mapa1.mousepressed(x, y, button)
 
     pauseMenu.mousepressed(x, y, button)
 end
+
 
 
 function mapa1.keypressed(key)

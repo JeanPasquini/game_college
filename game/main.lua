@@ -21,7 +21,7 @@ function trocarEstado(novoEstado)
             elseif gameState.estado == "menu" or gameState.estado == "configuracao" then
                 menu.load(gameState)
             elseif gameState.estado == "mapa1" then
-                mapa1.load(gameState, selectCharacter.quantidadeJogadores)
+                mapa1.load(gameState, selectCharacter.quantidadeJogadores, selectCharacter.tiposJogadores)
             elseif gameState.estado == "creditos" then
                 creditos.load()
                 estadoAtual = creditos
@@ -80,7 +80,6 @@ function carregarTeclas()
         keyState[t.tecla] = false
     end
 
-    -- Carregar imagem do botão de pause
     pauseImage = love.graphics.newImage("resources/keyboard/pause.png")
 end
 
