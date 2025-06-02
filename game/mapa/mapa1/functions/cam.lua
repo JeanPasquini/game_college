@@ -40,4 +40,22 @@ function Camera:setPosition(x, y)
     self.cameraY = clamp(y - zoomedH / 2, 0, self.cameraLimitY - zoomedH)
 end
 
+function Camera:ajustarZoomParaResolucao()
+    local larguraAtual = love.graphics.getWidth()
+    local alturaAtual = love.graphics.getHeight()
+
+    local baseLargura = 1920
+    local baseAltura = 1080
+
+    local escalaX = larguraAtual / baseLargura
+    local escalaY = alturaAtual / baseAltura
+
+    local novoZoom = math.min(escalaX, escalaY, 1.0)
+
+    self.zoom = novoZoom * self.zoom 
+
+    print(string.format("Zoom ajustado: %.2f", self.zoom))
+end
+
+
 return Camera

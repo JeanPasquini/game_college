@@ -41,13 +41,11 @@ local maxPixelClouds = 6
 local selecionandoPlayer = true
 local selecionandoSpawn = true
 
--- Carregue seus ícones de tanque no love.load ou onde preferir
 tanqueIcons = {
     [1] = love.graphics.newImage("resources/icons/icon_tanque_comum.png"),
     [2] = love.graphics.newImage("resources/icons/icon_tanque_goliath_x.png"),
     [3] = love.graphics.newImage("resources/icons/icon_tanque_lightning_viper.png"),
     [4] = love.graphics.newImage("resources/icons/icon_tanque_doombringer.png")
-    -- Adicione mais tipos de tanque conforme necessário
 }
 
 
@@ -86,8 +84,7 @@ function mapa1.restart()
         table.insert(aguasMapa1, Agua.new(agua.x, agua.y, agua.valorImagem))
     end
 
-    musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
-    --background = love.graphics.newImage("resources/backgrounds/background5.png")
+    musica:changeMusicGradually("sounds/soundtrack/mapa.wav")
     pauseMenu.setMapa(mapa1)
     if pauseMenu.isVisible then pauseMenu.isVisible = false end
     pixelClouds = {}
@@ -98,7 +95,7 @@ end
 function mapa1.load(gameState, quantidadeJogadores)
     backgroundFunction.load()
     tanqueIcon = love.graphics.newImage("resources/sprites/tank/idleTank.png")
-    musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
+    musica:changeMusicGradually("sounds/soundtrack/mapa.wav")
     mapa1.gameState = gameState
     mapa1.quantidadeJogadores = quantidadeJogadores
     _quantidadeJogadores = quantidadeJogadores
@@ -110,8 +107,6 @@ function mapa1.load(gameState, quantidadeJogadores)
 
     config.load()
     debug.load()
-
-    --background = love.graphics.newImage("resources/backgrounds/background5.png")
 
     for _, objeto in ipairs(config.objetos) do
         table.insert(objetosMapa1, Objeto.new(objeto.x, objeto.y, objeto.valorImagem))
@@ -134,13 +129,15 @@ function mapa1.load(gameState, quantidadeJogadores)
     mapa1.restart()
 end
 
---function drawBackground()
---    local windowWidth, windowHeight = love.graphics.getDimensions()
---    local scaleX = windowWidth / background:getWidth()
---    local scaleY = windowHeight / background:getHeight()
---    local scale = math.max(scaleX, scaleY)
---    love.graphics.draw(background, 0, 0, 0, scale, scale)
---end
+function calcularEscala()
+    local larguraAtual = love.graphics.getWidth()
+    local alturaAtual = love.graphics.getHeight()
+
+    local escalaX = larguraAtual / 1920
+    local escalaY = alturaAtual / 1080
+
+    return math.min(escalaX, escalaY)
+end
 
 function drawObjects()
     for _, objeto in ipairs(objetosMapa1) do
@@ -181,18 +178,16 @@ function drawLifeBar(player, index)
     local iconCenterX = iconX + iconSize / 2
     local iconCenterY = iconY + iconSize / 2
 
-    -- Fundo arredondado do ícone
     love.graphics.setColor(1, 1, 1, 0.2) 
     love.graphics.rectangle("fill", iconX - 8, iconY - 8, iconSize + 16, iconSize + 16)
 
     love.graphics.setColor(0.1, 0.1, 0.1)  
-    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize, 8)  -- Bordas arredondadas
+    love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize, 8) 
 
     love.graphics.setColor(1, 1, 1, 0.1) 
     love.graphics.rectangle("fill", iconX, iconY, iconSize, iconSize, 8)
 
-    -- Seleciona o ícone correto baseado no tipoTanque
-    local iconImage = tanqueIcons[player.tipoTanque] or tanqueIcons[1]  -- Usa o tipo 1 como padrão se não achar
+    local iconImage = tanqueIcons[player.tipoTanque] or tanqueIcons[1]
 
     if iconImage then
         love.graphics.setColor(1, 1, 1)
@@ -201,14 +196,13 @@ function drawLifeBar(player, index)
             iconCenterX,
             iconCenterY,
             0,
-            iconSize / iconImage:getWidth() * 0.8,  -- Escala proporcional
+            iconSize / iconImage:getWidth() * 0.8,
             iconSize / iconImage:getHeight() * 0.8,
             iconImage:getWidth() / 2,
             iconImage:getHeight() / 2
         )
     end
 
-    -- Barra de vida
     love.graphics.setColor(0.7, 0.7, 0.7)  
     love.graphics.rectangle("fill", posX - border, posY - border, barWidth + border * 2, barHeight + border * 2)
 
@@ -233,18 +227,27 @@ function drawLifeBar(player, index)
     love.graphics.rectangle("line", posX, posY, barWidth, barHeight)
 
     love.graphics.setColor(1, 1, 1)
-    local lifeText = math.floor(player.life) .. " / " .. player.maxLife  
-    local lifeTextWidth = love.graphics.getFont():getWidth(lifeText)
-    love.graphics.print(lifeText, posX + (barWidth - lifeTextWidth) / 2, posY + barHeight / 2 - love.graphics.getFont():getHeight() / 2)
+    local font = love.graphics.getFont()
+    local lifeText = math.floor(player.life) .. " / " .. player.maxLife
+    local lifeTextWidth = font:getWidth(lifeText)
+    local x = posX + (barWidth - lifeTextWidth) / 2
+    local y = posY + barHeight / 2 - font:getHeight() / 2
+
+    drawTextWithBorder(lifeText, x, y, font, {1, 1, 1}, {0, 0, 0}, 1)
+
 
     local nameText = "Player " .. player.name
-    local nameWidth = love.graphics.getFont():getWidth(nameText)  
-    local nameHeight = 22 
-    love.graphics.setColor(0.2, 0.2, 0.2) 
-    love.graphics.rectangle("fill", posX, posY + barHeight + 5, nameWidth + 15, nameHeight) 
+    local font = love.graphics.getFont()
+    local nameWidth = font:getWidth(nameText)
+    local nameHeight = 22
+    local posYText = posY + barHeight + 5
+    local textY = posYText + (nameHeight - font:getHeight()) / 2
 
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print(nameText, posX + 8, posY + barHeight + 5 + (nameHeight - love.graphics.getFont():getHeight()) / 2)
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.rectangle("fill", posX, posYText, nameWidth + 15, nameHeight)
+
+    drawTextWithBorder(nameText, posX + 8, textY, font, {1, 1, 1}, {0, 0, 0}, 1)
+
 
     love.graphics.setColor(1, 1, 1)
 end
@@ -326,9 +329,6 @@ function drawHud()
     love.graphics.setColor(0.15, 0.15, 0.15, 0.9)
     love.graphics.rectangle("fill", baseX, baseY, clockRadius * 2, clockRadius * 2)
 
-    --love.graphics.setColor(0.7, 0.7, 0.7)
-    --love.graphics.rectangle("line", baseX, baseY, clockRadius * 2, clockRadius * 2, 0)  -- Retirado o arredondamento
-
     love.graphics.setColor(0.9, 0.9, 0.9)
     love.graphics.rectangle("fill", baseX + borderThickness + 6, baseY + borderThickness + 6, (clockRadius - borderThickness - 6) * 2, (clockRadius - borderThickness - 6) * 2)
 
@@ -361,31 +361,50 @@ function drawHud()
     love.graphics.rectangle("fill", textBackgroundX2, baseY + textHeight + spaceBetween, textWidth, textHeight)  
 
     love.graphics.setColor(0.7, 0.7, 0.7)  
-    love.graphics.rectangle("line", textBackgroundX1 - borderThickness, baseY - borderThickness, textWidth + borderThickness * 2, textHeight + borderThickness * 2)  -- Borda do retângulo 1
-    love.graphics.rectangle("line", textBackgroundX2 - borderThickness, baseY + textHeight + spaceBetween - borderThickness, textWidth + borderThickness * 2, textHeight + borderThickness * 2)  -- Borda do retângulo 2
+    love.graphics.rectangle("line", textBackgroundX1 - borderThickness, baseY - borderThickness, textWidth + borderThickness * 2, textHeight + borderThickness * 2)
+    love.graphics.rectangle("line", textBackgroundX2 - borderThickness, baseY + textHeight + spaceBetween - borderThickness, textWidth + borderThickness * 2, textHeight + borderThickness * 2)
+
+    local font16 = love.graphics.newFont("font/PressStart2P-Regular.ttf", 16)
+    local font20 = love.graphics.newFont("font/PressStart2P-Regular.ttf", 20)
 
     local textBaseX1 = textBackgroundX1 + 10
     local tempoColor = (tempoRestante / tempoTurno > 0.3) and {0, 1, 0} or {1, 0, 0}
-    love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 16))
-    love.graphics.setColor(tempoColor)
-    love.graphics.print(string.format("%.1f s", tempoRestante), textBaseX1, baseY + 20)
+    love.graphics.setFont(font16)
+    drawTextWithBorder(string.format("%.1f s", tempoRestante), textBaseX1, baseY + 20, font16, tempoColor, {0, 0, 0}, 1)
 
     local textBaseX2 = textBackgroundX2 + 10
-    love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 20))
-    love.graphics.setColor(0.7, 0.7, 0.7)
-    love.graphics.print("Round: " .. turno, textBaseX2, baseY + textHeight + spaceBetween + 20) 
+    love.graphics.setFont(font20)
+    drawTextWithBorder("Round: " .. turno, textBaseX2, baseY + textHeight + spaceBetween + 20, font20, {0.7, 0.7, 0.7}, {0, 0, 0}, 1)
 
     if textoMensagem and mensagemExibida == true then
-        love.graphics.setFont(love.graphics.newFont("font/PressStart2P-Regular.ttf", 40))
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.printf(textoMensagem, 0, love.graphics.getHeight() / 2, love.graphics.getWidth(), "center")
+
+        local vivos = {}
+        for _, player in ipairs(players) do
+            if player.visible and player.life > 0 then
+                table.insert(vivos, player)
+            end
+        end
+        local fontTitle = love.graphics.newFont("font/PressStart2P-Regular.ttf", 40)
+        love.graphics.setFont(fontTitle)
+        local textWidth = fontTitle:getWidth(textoMensagem)
+        local windowWidth = love.graphics.getWidth()
+        local windowHeight = love.graphics.getHeight()
+
+        drawTextWithBorder(textoMensagem, (windowWidth - textWidth) / 2, windowHeight / 2 - 150, fontTitle, {1, 1, 1}, {0, 0, 0}, 1)
+
+        if #vivos ~= 1 then
+            local fontSub = love.graphics.newFont("font/PressStart2P-Regular.ttf", 18)
+            love.graphics.setFont(fontSub)
+            local textSubWidth = fontSub:getWidth(textoSubMensagem)
+
+            drawTextWithBorder(textoSubMensagem, (windowWidth - textSubWidth) / 2, windowHeight / 2 - 100, fontSub, {1, 1, 1}, {0, 0, 0}, 1)
+        end
+
     end
+
 
     love.graphics.setColor(1, 1, 1)
 end
-
-
-
 
 local function atualizarTempo(dt)
     if tempoIniciado then
@@ -402,7 +421,7 @@ local function verificarVitoria()
     end
 
     if #vivos == 1 then
-        textoMensagem = vivos[1].name .. " venceu!"
+        textoMensagem = "Player " .. vivos[1].name .. " venceu!"
         musica:changeMusicGradually("sounds/soundtrack/win.ogg", false)
         mensagemExibida = true
         tempoIniciado = false
@@ -426,14 +445,17 @@ local function verificarTrocaDeTurno()
         until players[turno].visible and players[turno].life > 0
         tempoRestante = tempoTurno
         tempoIniciado = false
+
         mensagemExibida = true
         textoMensagem = "Turno do Player " .. players[turno].name
+        textoSubMensagem = "Pressione qualquer tecla para iniciar o turno"
 
         for i, player in ipairs(players) do
             player.mostrarMira = (i == turno)
         end
     end
 end
+
 
 local function controlarJogador(dt)
     local playerAtual = players[turno]
@@ -483,8 +505,9 @@ local function verificarColisoes()
         functionObjetoInquebravel.handleCollisions(player, objetosInquebravelMapa1)
         functionAgua.handleCollisionsAgua(player, aguasMapa1)
     end
-    -- Necessidade de otimizar !!!
+
     functionProjetile.handleProjectileCollisions(players, objetosMapa1, objetosInquebravelMapa1, objetosCenarioMapa1)
+    
 end
 
 function mapa1.update(dt)
@@ -523,42 +546,74 @@ end
 function mapa1.draw()
     love.graphics.setColor(1, 1, 1)
 
-    if not selecionandoSpawn then
+    if selecionandoSpawn then
+        local designWidth = 1920
+        local designHeight = 1080
+
+        local windowWidth = love.graphics.getWidth()
+        local windowHeight = love.graphics.getHeight()
+
+        local scaleX = windowWidth / designWidth
+        local scaleY = windowHeight / designHeight
+        local scale = math.min(scaleX, scaleY)
+
+        local offsetX = (windowWidth - designWidth * scale) / 2
+        local offsetY = (windowHeight - designHeight * scale) / 2
+
+        love.graphics.push()
+        love.graphics.translate(offsetX, offsetY)
+        love.graphics.scale(scale)
+    else
         love.graphics.push()
         love.graphics.scale(camera.zoom)
         love.graphics.translate(-camera.cameraX, -camera.cameraY)
     end
 
-    --drawBackground()
     backgroundFunction.draw(camera.cameraX, camera.zoom)
     drawObjects()
     drawPlayers()
     desenharEfeitosDeTexto()
     desenharExplosoes()
-    desenharEfeitosDeTexto()   
+    desenharEfeitosDeTexto()
     desenharFumacas()
     drawPixelClouds()
-    
 
-    if not selecionandoSpawn then
-        love.graphics.pop()
-    end
+    love.graphics.pop()
 
     drawHud()
-    --pauseMenu.drawPauseButton()
     pauseMenu.draw()
+
+    if selecionandoSpawn then
+        local windowWidth = love.graphics.getWidth()
+        local windowHeight = love.graphics.getHeight()
+
+        local playerIndex = 1
+        local nomePlayer = "Posicione o Player " .. jogadoresContados + 1
+
+        local font = love.graphics.newFont("font/PressStart2P-Regular.ttf", 28)
+        love.graphics.setFont(font)
+        local textWidth = font:getWidth(nomePlayer)
+        drawTextWithBorder(nomePlayer, (windowWidth - textWidth) / 2, windowHeight / 2 - 200, font, {1, 1, 1}, {0, 0, 0}, 1)
+
+        local mx, my = love.mouse.getPosition()
+        local scale = 1.4 
+        love.graphics.setColor(1, 1, 1, 0.5) 
+        love.graphics.draw(tanqueIcon, mx, my, 0, scale, scale, tanqueIcon:getWidth() / 2, tanqueIcon:getHeight() / 2)
+    end
 end
 
 function mapa1.mousepressed(x, y, button)
     if selecionandoSpawn and button == 1 then
 
+        if selecionandoSpawn then
+            x, y = ajustarCliqueParaTela1920x1080(x, y)
+        end
+
         if jogadoresContados < mapa1.quantidadeJogadores then
             local novoJogadorID = tostring(jogadoresContados + 1)
             
-            -- pega o tipo selecionado para o jogador atual
-            local tipoTanque = tankTypes[jogadoresContados + 1] or 1  -- default 1 caso não tenha
+            local tipoTanque = tankTypes[jogadoresContados + 1] or 1 
             
-            -- cria o jogador passando tipoTanque como argumento extra
             local novoJogador = Player.new(x, y, novoJogadorID, tipoTanque)
             
             table.insert(players, novoJogador)
@@ -573,7 +628,25 @@ function mapa1.mousepressed(x, y, button)
     pauseMenu.mousepressed(x, y, button)
 end
 
+function ajustarCliqueParaTela1920x1080(x, y)
+    local designWidth = 1920
+    local designHeight = 1080
 
+    local windowWidth = love.graphics.getWidth()
+    local windowHeight = love.graphics.getHeight()
+
+    local scaleX = windowWidth / designWidth
+    local scaleY = windowHeight / designHeight
+    local scale = math.min(scaleX, scaleY)
+
+    local offsetX = (windowWidth - designWidth * scale) / 2
+    local offsetY = (windowHeight - designHeight * scale) / 2
+
+    local novoX = (x - offsetX) / scale
+    local novoY = (y - offsetY) / scale
+
+    return novoX, novoY
+end
 
 function mapa1.keypressed(key)
     if key == "'" then
@@ -595,7 +668,6 @@ function mapa1.keypressed(key)
 
     pauseMenu.keypressed(key)
 end
-
 
 function love.keypressed(key)
     if not selecionandoSpawn then

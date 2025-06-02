@@ -1,15 +1,12 @@
--- Módulo de Projetéis Otimizado
 local functionProjetile = {}
 local efeitoTexto = {}
 local explosoes = {}
 
--- Pré-carregamento de sprites de explosão
 local explosionSprites = {}
 for i = 1, 8 do
     explosionSprites[i] = love.graphics.newImage("resources/sprites/explosion/explosion" .. i .. ".png")
 end
 
--- Função para verificar colisão entre projétil e objeto
 function functionProjetile.checkCollisionProjectile(proj, objeto)
     return proj.x < objeto.x + objeto.width and
            proj.x + 5 > objeto.x and
@@ -17,7 +14,18 @@ function functionProjetile.checkCollisionProjectile(proj, objeto)
            proj.y + 5 > objeto.y
 end
 
--- Função para criar explosão
+function functionProjetile.checkCollisionWithPlayer(proj, player)
+    local projX = proj.x
+    local projY = proj.y
+
+    local left = player.x
+    local right = player.x + player.width
+    local top = player.y
+    local bottom = player.y + player.height
+
+    return projX >= left and projX <= right and projY >= top and projY <= bottom
+end
+
 function criarExplosao(x, y)
     local explosao = {
         x = x,
@@ -36,7 +44,7 @@ function criarExplosao(x, y)
         {0.8, 0.2, 0}
     }
 
-    for i = 1, 20 do -- Reduzido de 40 para 20
+    for i = 1, 20 do 
         local angulo = math.random() * math.pi * 2
         local distancia = math.random() * explosao.tamanhoMaximo
         local tamanho = tamanhos[math.random(1, #tamanhos)]
@@ -54,7 +62,6 @@ function criarExplosao(x, y)
     table.insert(explosoes, explosao)
 end
 
--- Função para atualizar explosões
 function atualizarExplosoes(dt)
     for i = #explosoes, 1, -1 do
         local explosao = explosoes[i]
@@ -71,7 +78,6 @@ function atualizarExplosoes(dt)
     end
 end
 
--- Função para desenhar explosões
 function desenharExplosoes()
     for _, explosao in ipairs(explosoes) do
         for _, quadrado in ipairs(explosao.quadrados) do
@@ -82,7 +88,6 @@ function desenharExplosoes()
     love.graphics.setColor(1, 1, 1)
 end
 
--- Função para calcular dano por proximidade
 function calcularDanoPorProximidade(proj, target)
     local dx = target.x - proj.x
     local dy = target.y - proj.y
@@ -94,7 +99,6 @@ function calcularDanoPorProximidade(proj, target)
     return math.floor(danoFinal)
 end
 
--- Função para criar efeito de texto
 function criarEfeitoTexto(x, y, vidaPerdida)
     if #efeitoTexto >= 10 then table.remove(efeitoTexto, 1) end
     local efeito = {
@@ -107,7 +111,6 @@ function criarEfeitoTexto(x, y, vidaPerdida)
     table.insert(efeitoTexto, efeito)
 end
 
--- Função para atualizar efeitos de texto
 function atualizarEfeitosDeTexto(dt)
     for i = #efeitoTexto, 1, -1 do
         local efeito = efeitoTexto[i]
@@ -119,77 +122,123 @@ function atualizarEfeitosDeTexto(dt)
     end
 end
 
--- Função para desenhar efeitos de texto
+local font = love.graphics.newFont("font/PressStart2P-Regular.ttf", 10)
+
 function desenharEfeitosDeTexto()
     for _, efeito in ipairs(efeitoTexto) do
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.print(efeito.texto, efeito.x, efeito.y)
+        drawTextWithBorder(efeito.texto, efeito.x, efeito.y, font, {1, 1, 1}, {0, 0, 0}, 1)
     end
 end
 
--- Função para lidar com colisões de projéteis
 function functionProjetile.handleProjectileCollisions(players, objetos, objetosInquebravel, objetosCenario)
-    -- Pré-concatenação de todos os objetos
     local todosObjetos = {}
     for _, obj in ipairs(objetos) do table.insert(todosObjetos, obj) end
     for _, obj in ipairs(objetosInquebravel) do table.insert(todosObjetos, obj) end
     for _, obj in ipairs(objetosCenario) do table.insert(todosObjetos, obj) end
 
+    local explosionRadiusObj = 80
+    local explosionRadiusCenario = 120
+    local knockbackForce = 300
+
+    local function aplicarDanoEKnockback(target, proj, dano)
+        local danoRecebido = math.max(target.life - dano, 0)
+        local vidaPerdida = target.life - danoRecebido
+        target.life = danoRecebido
+        criarEfeitoTexto(target.x, target.y - 20, vidaPerdida)
+
+        target.knockbackX = (proj.x < target.x) and knockbackForce or -knockbackForce
+        target.knockbackY = (proj.y < target.y) and knockbackForce or -knockbackForce
+    end
+
     for _, player in ipairs(players) do
         for i = #player.projectiles, 1, -1 do
             local proj = player.projectiles[i]
+            local colidiu = false
 
-            for _, objeto in ipairs(todosObjetos) do
-                if functionProjetile.checkCollisionProjectile(proj, objeto) then
+            for _, target in ipairs(players) do
+                if target.visible and target ~= player and functionProjetile.checkCollisionWithPlayer(proj, target) then
                     table.remove(player.projectiles, i)
                     efeitoSonoro:play("sounds/soundeffect/explosion2.wav")
                     criarExplosao(proj.x, proj.y)
 
-                    -- Remover objetos quebráveis próximos
+                    aplicarDanoEKnockback(target, proj, proj.damage)
+
                     for j = #objetos, 1, -1 do
                         local dx = objetos[j].x - proj.x
                         local dy = objetos[j].y - proj.y
-                        if dx * dx + dy * dy <= 6400 then -- 80^2
+                        if dx * dx + dy * dy <= explosionRadiusObj * explosionRadiusObj then
                             table.remove(objetos, j)
                         end
                     end
 
-                    -- Remover objetos de cenário próximos
                     for j = #objetosCenario, 1, -1 do
                         local dx = objetosCenario[j].x - proj.x
                         local dy = objetosCenario[j].y - proj.y
-                        if dx * dx + dy * dy <= 14400 then -- 120^2
+                        if dx * dx + dy * dy <= explosionRadiusCenario * explosionRadiusCenario then
                             table.remove(objetosCenario, j)
                         end
                     end
 
-                    -- Aplicar dano e knockback aos jogadores próximos
-                    for _, target in ipairs(players) do
-                        if target.visible then
-                            local dx = target.x - proj.x
-                            local dy = target.y - proj.y
-                            local dist2 = dx * dx + dy * dy
-                            if dist2 <= 6400 then -- 80^2
-                                local dano = calcularDanoPorProximidade(proj, target)
-                                local danoRecebido = math.max(target.life - dano, 0)
-                                local vidaPerdida = target.life - danoRecebido
-                                target.life = danoRecebido
-                                criarEfeitoTexto(target.x, target.y - 20, vidaPerdida)
-
-                                local knockbackForce = 300
-                                target.knockbackX = (proj.x < target.x) and knockbackForce or -knockbackForce
-                                target.knockbackY = (proj.y < target.y) and knockbackForce or -knockbackForce
+                    for _, other in ipairs(players) do
+                        if other ~= target and other.visible then
+                            local dx = other.x - proj.x
+                            local dy = other.y - proj.y
+                            if dx * dx + dy * dy <= explosionRadiusObj * explosionRadiusObj then
+                                local danoProx = calcularDanoPorProximidade(proj, other)
+                                aplicarDanoEKnockback(other, proj, danoProx)
                             end
                         end
                     end
+
+                    colidiu = true
                     break
+                end
+            end
+
+            if not colidiu then
+
+                local collidedWithObject = false
+                for _, objeto in ipairs(todosObjetos) do
+                    if functionProjetile.checkCollisionProjectile(proj, objeto) then
+                        table.remove(player.projectiles, i)
+                        efeitoSonoro:play("sounds/soundeffect/explosion2.wav")
+                        criarExplosao(proj.x, proj.y)
+
+                        for j = #objetos, 1, -1 do
+                            local dx = objetos[j].x - proj.x
+                            local dy = objetos[j].y - proj.y
+                            if dx * dx + dy * dy <= explosionRadiusObj * explosionRadiusObj then
+                                table.remove(objetos, j)
+                            end
+                        end
+
+                        for j = #objetosCenario, 1, -1 do
+                            local dx = objetosCenario[j].x - proj.x
+                            local dy = objetosCenario[j].y - proj.y
+                            if dx * dx + dy * dy <= explosionRadiusCenario * explosionRadiusCenario then
+                                table.remove(objetosCenario, j)
+                            end
+                        end
+
+                        for _, target in ipairs(players) do
+                            if target.visible then
+                                local dx = target.x - proj.x
+                                local dy = target.y - proj.y
+                                if dx * dx + dy * dy <= explosionRadiusObj * explosionRadiusObj then
+                                    local danoProx = calcularDanoPorProximidade(proj, target)
+                                    aplicarDanoEKnockback(target, proj, danoProx)
+                                end
+                            end
+                        end
+                        collidedWithObject = true
+                        break
+                    end
                 end
             end
         end
     end
 end
 
--- Funções de atualização e desenho para serem chamadas no love.update e love.draw
 function functionProjetile.update(dt)
     atualizarExplosoes(dt)
     atualizarEfeitosDeTexto(dt)

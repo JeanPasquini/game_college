@@ -1,27 +1,37 @@
-love.window.setMode(1920, 1080, { fullscreen = false, resizable = false })
+love.window.setMode(1366, 768, { fullscreen = false, resizable = true })
+love.window.setTitle("Tactical Tanks")
+
+local icon = love.image.newImageData("resources/backgrounds/main/1.png")
+love.window.setIcon(icon)
+
+love.window.setMode(1366, 768, { fullscreen = false, resizable = true })
 
 local menu = require("menu.main.menu")
 local pauseMenu = require("menu.ingame.pauseMenu")
 local musicaIntro
 local pressStartFont
-
 local creditos = require("menu/main/creditos")
 local selectCharacter = require("menu.main.selectCharacter")
 local mapa1 = require("mapa.mapa1.mapa1")
 local transition = require("menu.main.transition")
 local estadoParaTrocar = nil
+defaultFont = love.graphics.newFont(14) 
 
-local gameState = { estado = "menu", estadoCarregado = nil }
+local gameState = { estado = "", estadoCarregado = nil }
 
 function trocarEstado(novoEstado)
     if gameState.estado ~= novoEstado and not transition.isActive() then
         estadoParaTrocar = novoEstado
+
+        local usarDelay = (estadoParaTrocar == "mapa1")
+
         transition.start(function()
             gameState.estado = estadoParaTrocar
             if gameState.estado == "selectCharacter" then
                 selectCharacter.load(gameState, quantidadeJogadores)
             elseif gameState.estado == "menu" or gameState.estado == "configuracao" then
                 menu.load(gameState)
+                musica:changeMusicGradually("sounds/soundtrack/main.wav", false)
             elseif gameState.estado == "mapa1" then
                 mapa1.load(gameState, selectCharacter.quantidadeJogadores, selectCharacter.tiposJogadores)
             elseif gameState.estado == "creditos" then
@@ -29,7 +39,7 @@ function trocarEstado(novoEstado)
                 estadoAtual = creditos
             end
             gameState.estadoCarregado = gameState.estado
-        end)
+        end, usarDelay, 15)  
     end
 end
 
@@ -41,12 +51,11 @@ _G.efeitoSonoro = require("sounds/soundeffect")
 local gifFrames = {}
 local gifIndex = 1
 local gifTimer = 0
-local gifFrameDuration = 0.097
+local gifFrameDuration = 0.034
 local gifPlaying = true
 local gifTotalTime = 0
-local gifSkipTime = 153 * gifFrameDuration
+local gifSkipTime = 177 * gifFrameDuration
 
--- Teclas (sprites)
 local keyImages = {}
 local keyState = {}
 local pauseImage
@@ -86,38 +95,50 @@ function carregarTeclas()
 end
 
 function love.load()
+    transition.load()
+    pressStartFont = love.graphics.newFont("font/PressStart2P-Regular.ttf", 12)
+    musica:play("sounds/soundtrack/intro.MP3", false)
     carregarGif()
     carregarTeclas()
-    pressStartFont = love.graphics.newFont("font/PressStart2P-Regular.ttf", 12)
-    musicaIntro = love.audio.newSource("sounds/soundtrack/intro.MP3", "stream")
-    musicaIntro:setLooping(false)
-    musicaIntro:play()
 
 end
 
 function love.update(dt)
-    if gifPlaying then
-        gifTimer = gifTimer + dt
-        gifTotalTime = gifTotalTime + dt
-        if gifTimer >= gifFrameDuration then
-            gifTimer = gifTimer - gifFrameDuration
-            gifIndex = gifIndex + 1
-            if gifIndex > #gifFrames then gifIndex = 1 end
-        end
-        if gifTotalTime >= gifSkipTime then
-            gifPlaying = false
-            if musicaIntro then
-                musicaIntro:stop()
-            end
-            menu.load(gameState)
-            musica:play("sounds/soundtrack/main.ogg")
-        end
-        return
+local transitionStarted = false
+
+musica:update(dt)
+transition.update(dt)
+
+if gifPlaying then
+    gifTimer = gifTimer + dt
+    gifTotalTime = gifTotalTime + dt
+
+    if gifTimer >= gifFrameDuration then
+        gifTimer = gifTimer - gifFrameDuration
+        gifIndex = gifIndex + 1
+        if gifIndex > #gifFrames then gifIndex = 1 end
     end
 
-    musica:update(dt)
-    transition.update(dt)
+    if gifIndex == 150 and not transitionStarted then
+        transitionStarted = true
+        transition.start(function()
+            menu.load(gameState)
+            musica:changeMusicGradually("sounds/soundtrack/main.wav", false)
+            gameState.estado = "menu"
+            gifPlaying = false  
+        end, true, 5)
+    end
 
+    if gifTotalTime >= gifSkipTime and not transitionStarted then
+        gifPlaying = false
+    end
+
+    return
+end
+
+
+    
+    
     if gameState.estado == "selectCharacter" then
         selectCharacter.update(dt)
     elseif gameState.estado == "mapa1" then
@@ -138,7 +159,6 @@ function love.draw()
                 love.graphics.getHeight() / img:getHeight()
             )
         end
-        return
     end
 
     if gameState.estado == "menu" or gameState.estado == "configuracao" then
@@ -148,17 +168,15 @@ function love.draw()
     elseif gameState.estado == "mapa1" then
         mapa1.draw()
 
--- Desenhar barra inferior com fundo, sombra de texto e alinhamento centralizado
 local screenWidth = love.graphics.getWidth()
 local screenHeight = love.graphics.getHeight()
 local imgSize = 48
-local spacing = 20 -- entre seções
-local innerSpacing = 5 -- entre teclas na mesma seção
+local spacing = 20 
+local innerSpacing = 5 
 local baseY = screenHeight - imgSize + 5
 local font = pressStartFont
 love.graphics.setFont(font)
 
--- Define dados do layout
 local layout = {
     {
         label = "Angulação:",
@@ -188,7 +206,6 @@ local layout = {
     }
 }
 
--- Calcula largura total
 local totalWidth = 0
 local sectionWidths = {}
 for _, section in ipairs(layout) do
@@ -197,42 +214,31 @@ for _, section in ipairs(layout) do
     for _, key in ipairs(section.keys) do
         sectionWidth = math.max(sectionWidth, key.dx + imgSize)
     end
-    sectionWidth = sectionWidth + imgSize + 10 -- espaço entre texto e teclas
+    sectionWidth = sectionWidth + imgSize + 10
     table.insert(sectionWidths, sectionWidth)
     totalWidth = totalWidth + sectionWidth + spacing
 end
-totalWidth = totalWidth - spacing -- remover o último extra
+totalWidth = totalWidth - spacing 
 
 local startX = (screenWidth - totalWidth) / 2
 local boxHeight = imgSize + 30
 local boxY = baseY - 10
 
--- Caixa translúcida de fundo
---love.graphics.setColor(0, 0, 0, 0.4)
---love.graphics.rectangle("fill", startX - 20, boxY - 10, totalWidth + 40, boxHeight + 20, 12, 12)
-
--- Desenha cada seção
 for i, section in ipairs(layout) do
     local x = startX
     local label = section.label
     local textWidth = font:getWidth(label)
     local textHeight = font:getHeight()
 
-    -- Centralizar verticalmente com a imagem mais alta da seção
     local imgBlockHeight = 0
     for _, k in ipairs(section.keys) do
         imgBlockHeight = math.max(imgBlockHeight, k.dy + imgSize)
     end
     local totalHeight = math.max(textHeight, imgBlockHeight)
-    local textY = baseY + (totalHeight - textHeight) / 7 --importante
+    local textY = baseY + (totalHeight - textHeight) / 7 
 
-    -- Texto com sombra
-    love.graphics.setColor(0, 0, 0, 0.6)
-    love.graphics.print(label, x + 1, textY + 1)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(label, x, textY)
+    drawTextWithBorder(label, x, textY, font, {1, 1, 1, 1}, {0, 0, 0, 0.6}, 1)
 
-    -- Teclas ao lado do texto
     local keyX = x + textWidth + 10
     for _, keyInfo in ipairs(section.keys) do
         local imgSet = keyImages[keyInfo.key]
@@ -245,14 +251,11 @@ for i, section in ipairs(layout) do
     startX = startX + sectionWidths[i] + spacing
 end
 
-        -- Desenhar imagem de pause no canto superior direito
-        -- Desenhar imagem de pause no canto inferior esquerdo, abaixo do HUD
     if pauseImage then
-        local margin = 145
-        local baseY = love.graphics.getHeight() - 210 -- mesmo Y do relógio
-       -- local hudHeight = 100 + 40 + 10 -- clock + espaço + texto Round
+        local margin = 50
+        local baseY = love.graphics.getHeight() - 350 
         local pauseX = margin + 5
-        local pauseY = baseY + 50 + 40 + 10 -- abaixo do "Round"
+        local pauseY = baseY + 50 + 40 + 10
         love.graphics.draw(pauseImage, pauseX, pauseY)
     end
 
@@ -272,11 +275,9 @@ function love.mousepressed(x, y, button)
     elseif gameState.estado == "selectCharacter" then
         selectCharacter.mousepressed(x, y, button)
     elseif gameState.estado == "mapa1" then
-    -- Verificar clique no botão de pause
         if pauseImage then
-            local margin = 145
-            local baseY = love.graphics.getHeight() - 210
-            ---local hudHeight = 50 + 40 + 10
+            local margin = 50
+            local baseY = love.graphics.getHeight() - 350
             local pauseX = margin + 5
             local pauseY = baseY + 50 + 40 + 10
             local pw = pauseImage:getWidth()
@@ -315,7 +316,6 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.keypressed(key)
-    -- Mapeamento WASD
     local map = {
         w = "up",
         s = "down",
@@ -349,3 +349,71 @@ function love.keyreleased(key)
         keyState[mappedKey] = false
     end
 end
+
+function drawTextWithBorder(text, x, y, font, textColor, borderColor, borderThickness)
+    love.graphics.setFont(font)
+    
+    borderThickness = borderThickness or 1
+    textColor = textColor or {1, 1, 1}
+    borderColor = borderColor or {0, 0, 0}
+
+    love.graphics.setColor(borderColor)
+    for dx = -borderThickness, borderThickness do
+        for dy = -borderThickness, borderThickness do
+            if not (dx == 0 and dy == 0) then
+                love.graphics.print(text, x + dx, y + dy)
+            end
+        end
+    end
+
+    love.graphics.setColor(textColor)
+    love.graphics.print(text, x, y)
+end
+
+function drawTextWithBorderMultiline(text, x, y, maxWidth, align, font, textColor, borderColor, borderThickness)
+    font = font or love.graphics.getFont()
+    textColor = textColor or {1, 1, 1, 1}
+    borderColor = borderColor or {0, 0, 0, 1}
+    borderThickness = borderThickness or 2
+
+    local lines = {}
+    for line in text:gmatch("[^\n]+") do
+        table.insert(lines, line)
+    end
+
+    local lineHeight = font:getHeight()
+    local totalHeight = lineHeight * #lines
+
+    for i, line in ipairs(lines) do
+        local lineWidth = font:getWidth(line)
+        local drawX
+
+        if align == "center" then
+            drawX = x + (maxWidth - lineWidth) / 2
+        elseif align == "right" then
+            drawX = x + maxWidth - lineWidth
+        else 
+            drawX = x
+        end
+
+        local drawY = y + (i - 1) * lineHeight
+
+        love.graphics.setColor(borderColor)
+        for ox = -borderThickness, borderThickness do
+            for oy = -borderThickness, borderThickness do
+                if ox ~= 0 or oy ~= 0 then
+                    love.graphics.print(line, drawX + ox, drawY + oy)
+                end
+            end
+        end
+
+        love.graphics.setColor(textColor)
+        love.graphics.print(line, drawX, drawY)
+    end
+end
+
+    function selectCharacter.keypressed(key)
+
+    end
+
+

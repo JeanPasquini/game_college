@@ -16,14 +16,14 @@ local options = {
         label = "RECOMEÇAR",
         action = function()
             pauseMenu.restartGame() 
-            musica:changeMusicGradually("sounds/soundtrack/mapa.ogg")
+            musica:changeMusicGradually("sounds/soundtrack/mapa.wav")
         end
     },
     {
         label = "MENU",
         action = function()
             pauseMenu.isVisible = false
-            musica:changeMusicGradually("sounds/soundtrack/main.ogg")
+            musica:changeMusicGradually("sounds/soundtrack/main.wav")
             trocarEstado("menu")
         end
     }
@@ -40,17 +40,16 @@ end
 
 function pauseMenu.toggle()
     pauseMenu.isVisible = not pauseMenu.isVisible
+    
+    if pauseMenu.isVisible then
+        efeitoSonoro:play("sounds/soundeffect/menuin.wav")
+    else
+        efeitoSonoro:play("sounds/soundeffect/menuout.wav")
+    end
 end
 
---function pauseMenu.drawPauseButton()
-   -- love.graphics.setColor(0.2, 0.2, 0.2)
-    --love.graphics.rectangle("fill", love.graphics.getWidth() - 110, 10, 100, 40)
-    --love.graphics.setColor(1, 1, 1)
-    --love.graphics.setFont(fontRegular)
-    --love.graphics.print("Pause", love.graphics.getWidth() - 90, 20)
---end
-
 function pauseMenu.draw()
+    
     if not pauseMenu.isVisible then return end
 
     local width, height = love.graphics.getDimensions()
@@ -75,8 +74,14 @@ function pauseMenu.draw()
     love.graphics.rectangle("line", menuBorderX, menuBorderY, menuBorderWidth, menuBorderHeight)
 
     love.graphics.setFont(fontTitle)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("PAUSE", 0, startY - 50, width, "center")
+    local text = "PAUSE"
+    local textWidth = fontTitle:getWidth(text)
+    local textHeight = fontTitle:getHeight()
+    local textX = (width - textWidth) / 2
+    local textY = startY - 50
+
+    drawTextWithBorder(text, textX, textY, fontTitle, {1, 1, 1}, {0, 0, 0}, 1)
+
 
     love.graphics.setFont(fontRegular)
 
@@ -86,18 +91,26 @@ function pauseMenu.draw()
         local isHovered = mx >= buttonX and mx <= buttonX + buttonWidth and my >= y and my <= y + buttonHeight
 
         if isHovered then
-            love.graphics.setColor(0.42, 0.7, 0.42) -- Hover: verde claro
+            love.graphics.setColor(0.42, 0.7, 0.42) 
         else
-            love.graphics.setColor(0.29, 0.5, 0.29) -- Cor padrão
+            love.graphics.setColor(0.29, 0.5, 0.29) 
         end
 
         love.graphics.rectangle("fill", buttonX, y, buttonWidth, buttonHeight)
         love.graphics.setColor(1, 1, 0.6)
         love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", buttonX, y, buttonWidth, buttonHeight)
+        local fontButton = love.graphics.newFont("font/PressStart2P-Regular.ttf", 15)
+        love.graphics.setFont(fontButton) 
+        local text = option.label
+        local textWidth = fontButton:getWidth(text)
+        local textHeight = fontButton:getHeight()
 
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.printf(option.label, buttonX, y + (buttonHeight / 2) - 10, buttonWidth, "center")
+        local textX = buttonX + (buttonWidth - textWidth) / 2
+        local textY = y + (buttonHeight / 2) - (textHeight / 2)
+
+        drawTextWithBorder(text, textX, textY, fontButton, {1, 1, 1}, {0, 0, 0}, 1)
+
     end
 end
 
@@ -107,6 +120,7 @@ if not pauseMenu.isVisible then return end
 end
 
 function pauseMenu.mousepressed(x, y, button)
+    efeitoSonoro:play("sounds/soundeffect/click.wav")
     if button == 1 then
         local width, height = love.graphics.getDimensions()
         local bx, by, bw, bh = width - 110, 10, 100, 40

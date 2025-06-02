@@ -24,19 +24,6 @@ function debug.draw(debugAtivo, player)
             end
         end
     end
-
-    if player and debugAtivo then
-      love.graphics.setFont(debug.fontePequena)
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.print("Velocidade Y: " .. string.format("%.2f", player.velocidadeY), player.x + 20, player.y - 40)
-      love.graphics.print("Força: " .. string.format("%.2f", player.forcaTiro), player.x + 20, player.y - 60)
-      love.graphics.print("Pulando: " .. tostring(player.pulando), player.x + 20, player.y - 80)
-      love.graphics.print("Disparou: " .. tostring(player.disparou), player.x + 20, player.y - 100)
-      love.graphics.setFont(love.graphics.newFont())
-    end
 end
-
-
-
 
 return debug

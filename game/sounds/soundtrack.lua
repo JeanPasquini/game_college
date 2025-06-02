@@ -5,7 +5,7 @@ soundtrack.currentPath = nil
 soundtrack.targetPath = nil
 soundtrack.volume = 0.5
 soundtrack.currentVolume = 0 
-soundtrack.fadeSpeed = 1 
+soundtrack.fadeSpeed = 2
 soundtrack.state = "idle" 
 
 function soundtrack:play(path, loop)

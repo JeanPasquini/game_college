@@ -1,6 +1,7 @@
 local background = {}
 
 local layers = {}
+local initialOffset = -200
 
 function background.load()
     layers = {
@@ -34,12 +35,10 @@ function background.draw(cameraX)
         local img = layer.image
         local imgWidth = img:getWidth()
 
-        -- Ajuste parallax com base na posição da câmera
         local relativeX = (cameraX * layer.parallax) % imgWidth
-        local drawX = -relativeX
+        local drawX = -relativeX + initialOffset
 
-        -- Desenha a imagem repetidamente para preencher a tela
-        while drawX < windowWidth do
+        while drawX < windowWidth + imgWidth * 3 do
             love.graphics.draw(img, drawX, layer.y)
             drawX = drawX + imgWidth
         end

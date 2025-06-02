@@ -75,7 +75,6 @@ DATA DE LANÇAMENTO:
 
 ]]
 
--- Variáveis de controle (mantidas fora do load)
 local yOffset = nil
 local scrollSpeed = 90
 local totalTextHeight = 0
@@ -91,9 +90,6 @@ function creditos.reset()
 end
 
 function creditos.load()
-    -- if foiCarregado then return end
-
-    -- Só define como carregado no final
     local successFont = pcall(function()
         font = love.graphics.newFont("font/PressStart2P-Regular.ttf", 14)
     end)
@@ -135,9 +131,7 @@ function creditos.load()
             trocarEstado("menu")
         end
     }
-
-    -- Agora sim: carregamento completo com sucesso
-    --foiCarregado = true
+    
 end
 
 local function drawBackground()
@@ -155,7 +149,6 @@ function creditos.update(dt)
 
     yOffset = yOffset - scrollSpeed * dt
     if yOffset + totalTextHeight < -1800 and not finished then
-        finished = true
         trocarEstado("menu")
     end
 
@@ -165,7 +158,7 @@ function creditos.draw()
     drawBackground()
 
     love.graphics.setFont(font)
-    love.graphics.setColor(1, 1, 1, 1) -- força cor branca visível
+    love.graphics.setColor(1, 1, 1, 1)
 
     local screenWidth = love.graphics.getWidth()
     local y = yOffset
@@ -186,22 +179,29 @@ function creditos.draw()
         
     end
 
-    -- desenhar botão "PULAR"
-    -- botão "PULAR"
     if pularBotao.hover then
-        love.graphics.setColor(0.42, 0.7, 0.42) -- Hover: verde claro
+        love.graphics.setColor(0.42, 0.7, 0.42) 
     else
-        love.graphics.setColor(0.29, 0.5, 0.29) -- Normal: verde escuro
+        love.graphics.setColor(0.29, 0.5, 0.29)
     end
     love.graphics.rectangle("fill", pularBotao.x, pularBotao.y, pularBotao.largura, pularBotao.altura)
 
-    love.graphics.setColor(1, 1, 0.6) -- borda
+    love.graphics.setColor(1, 1, 0.6)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", pularBotao.x, pularBotao.y, pularBotao.largura, pularBotao.altura)
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(font)
-    love.graphics.printf(pularBotao.texto, pularBotao.x, pularBotao.y + (pularBotao.altura / 2) - 10, pularBotao.largura, "center")
+    
+    local textoLargura = font:getWidth(pularBotao.texto)
+    local textX = pularBotao.x + (pularBotao.largura - textoLargura) / 2
+    local textY = pularBotao.y + (pularBotao.altura / 2) - (font:getHeight() / 2)
+
+    local textColor = {1, 1, 1} 
+    local borderColor = {0, 0, 0} 
+    local borderThickness = 1
+
+    drawTextWithBorder(pularBotao.texto, textX, textY, font, textColor, borderColor, borderThickness)
 
 
 end
@@ -213,6 +213,7 @@ function creditos.keypressed(key)
 end
 
 function creditos.mousepressed(x, y, button)
+    efeitoSonoro:play("sounds/soundeffect/click.wav")
     if button == 1 then
         if x > pularBotao.x and x < pularBotao.x + pularBotao.largura and
            y > pularBotao.y and y < pularBotao.y + pularBotao.altura then

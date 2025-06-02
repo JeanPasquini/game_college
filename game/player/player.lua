@@ -5,7 +5,6 @@ local font
 function Player.new(x, y, name, tipoTanque)
     local self = setmetatable({}, Player)
 
-    -- Inicializa cor padrão do tanque (branco)
     self.r, self.g, self.b = 1, 1, 1
 
     self.tipoTanque = tipoTanque
@@ -31,6 +30,8 @@ function Player.new(x, y, name, tipoTanque)
     self.knockbackX = 0
     self.knockbackY = 0
     self.damage = 100
+    self.width = 64
+    self.height = 42
     self.mostrarMira = false
 
 if tipoTanque == 1 then
@@ -126,12 +127,6 @@ function Player:applyPhysics(dt)
 
     self.velocidadeY = self.velocidadeY + self.gravidade
     self.y = self.y + self.velocidadeY
-  
-    if self.y >= love.graphics.getHeight() - 32 then
-        self.y = love.graphics.getHeight() - 32
-        self.velocidadeY = 0
-        
-    end
 
     self.x = self.x + self.knockbackX * dt
     self.y = self.y + self.knockbackY * dt
@@ -162,6 +157,8 @@ function Player:updateProjectiles(dt)
     end
 
     for i, proj in ipairs(self.projectiles) do
+        proj.width = 16
+        proj.height = 16
         proj.velocidadeY = proj.velocidadeY + (self.gravidade * 2)
         proj.y = proj.y + proj.velocidadeY
 
@@ -195,9 +192,12 @@ function Player:draw()
     local playerImage = love.graphics.newImage("resources/sprites/tank/tank.png")
     local canhaoImage = love.graphics.newImage("resources/sprites/tank/canhao.png")
 
-    love.graphics.setFont(font)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Player " .. self.name, self.x + 32 - (font:getWidth("Player " .. self.name) / 2), self.y - 30)
+    local text = "Player " .. self.name
+    local textX = self.x + 32 - (font:getWidth(text) / 2)
+    local textY = self.y - 30
+
+    drawTextWithBorder(text, textX, textY, font, {1, 1, 1}, {0, 0, 0}, 1)
+
 
     love.graphics.polygon("fill", 
         self.x + 32, self.y - 25 + font:getHeight() + 6, 
@@ -208,10 +208,10 @@ function Player:draw()
     love.graphics.push()
     if self.viradoParaDireita then
         love.graphics.scale(-1, 1)
-        love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
+        love.graphics.setColor(self.r, self.g, self.b) 
         love.graphics.draw(playerImage, -self.x - playerImage:getWidth(), self.y)
     else
-        love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
+        love.graphics.setColor(self.r, self.g, self.b)
         love.graphics.draw(playerImage, self.x, self.y)
     end
     love.graphics.pop()
@@ -222,7 +222,7 @@ function Player:draw()
     love.graphics.scale(-1, 1) 
  
     love.graphics.draw(canhaoImage, -canhaoImage:getWidth(), -canhaoImage:getHeight()/2)
-    love.graphics.setColor(self.r, self.g, self.b) -- COR DO OBJETO AQUI
+    love.graphics.setColor(self.r, self.g, self.b) 
     love.graphics.pop()
 
 
@@ -232,9 +232,13 @@ function Player:draw()
     local miraY = self.y + 8 + self.raioMira * math.sin(self.anguloTiro)
 
     for _, proj in ipairs(self.projectiles) do
-        love.graphics.setColor(1, 1, 0)
-        love.graphics.rectangle('fill', proj.x, proj.y, 10, 10)
+        love.graphics.setColor(1, 1, 1) 
+        local bullet = love.graphics.newImage("resources/sprites/bullets/bullet1.png")
+        local bulletWidth = bullet:getWidth()
+        local bulletHeight = bullet:getHeight()
+        love.graphics.draw(bullet, proj.x, proj.y, 0, 1, 1, bulletWidth / 2, bulletHeight / 2)
     end
+
 
     love.graphics.setColor(1, 1, 1)
 
@@ -242,7 +246,8 @@ function Player:draw()
         local miraDistanteX = self.x + 32 + (self.raioMira + 60) * math.cos(self.anguloTiro)
         local miraDistanteY = self.y + 8 + (self.raioMira + 60) * math.sin(self.anguloTiro)
 
-        love.graphics.setColor(0, 1, 0)
+        love.graphics.setColor(0, 0.4, 0.1) 
+
         local size = 22
         love.graphics.setLineWidth(2)
 

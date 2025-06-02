@@ -1,6 +1,5 @@
 local functionObjeto = {}
 
--- Tamanho fixo do jogador
 local PLAYER_WIDTH = 64
 local PLAYER_HEIGHT = 42
 
@@ -35,7 +34,6 @@ function functionObjeto.handleCollisions(player, objetos)
                 player.y = oy + oh
             end
 
-            -- Atualiza posição atualizada para os próximos objetos
             px, py = player.x, player.y
         end
     end
