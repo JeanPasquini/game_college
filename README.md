@@ -57,7 +57,7 @@ O projeto conta com documentação detalhada para auxiliar no entendimento e des
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/tactical-tanks.git
+   git clone https://github.com/JeanPasquini/tactical-tanks.git
    ```
    
 Execute o jogo e prepare-se para a batalha!
