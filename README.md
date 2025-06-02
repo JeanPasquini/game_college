@@ -33,7 +33,7 @@ O jogo foi totalmente planejado e executado com organização em Trello, version
 ## 📥 Como Jogar
 
 - Controle por **teclado e mouse**
-- Escolha entre **3 tanques únicos**
+- Escolha entre **4 tanques únicos**
 - Dispute partidas de **5, 10 ou 15 rounds**
 - Vença por dano total ou eliminação tática
 
