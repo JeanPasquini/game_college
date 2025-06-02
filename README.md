@@ -160,6 +160,3 @@ Contribuições são bem-vindas! Se quiser ajudar a melhorar o Tactical Tanks, s
 
 - Abrir uma issue com sugestões ou relatando bugs.
 - Criar um pull request com melhorias ou correções.
-
-
-
