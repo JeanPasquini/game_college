@@ -1,7 +1,7 @@
 # Tactical Tanks 🎮💣
 
 <p align="center">
-  <img src="resources/backgrounds/main/1.png" alt="Tactical Tanks Banner">
+  <img src="game/resources/backgrounds/main/1.png" alt="Tactical Tanks Banner">
 </p>
 
 ## 📝 Sobre o Projeto
